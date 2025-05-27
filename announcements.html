@@ -7,17 +7,17 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-white text-gray-800 font-sans">
-  <header class="bg-green-700 text-white p-6 shadow-md">
+  <header class="bg-green-700 text-white p-4">
     <div class="container mx-auto flex justify-between items-center">
       <h1 class="text-xl font-bold">Amatangazo</h1>
-      <a href="/" class="text-sm underline hover:text-gray-200">Subira ku rubuga</a>
+      <a href="/index.html" class="text-sm underline hover:text-gray-200">⬅ Subira ku rubuga</a>
     </div>
   </header>
 
-  <section class="py-12 px-6">
-    <h2 class="text-2xl font-bold text-center mb-6">📢 Amatangazo mashya ya Chorale Bonheur</h2>
-    <div id="announcementList" class="space-y-4 max-w-2xl mx-auto text-center"></div>
-  </section>
+  <main class="max-w-3xl mx-auto p-6">
+    <h2 class="text-2xl font-bold mb-6 text-center">🗓 Amatangazo y'Igihe</h2>
+    <div id="announcementsList" class="space-y-4"></div>
+  </main>
 
   <footer class="bg-green-700 text-white text-center py-4">
     <p>&copy; 2025 Chorale Bonheur. Uburenganzira bwose burabitswe.</p>
@@ -33,37 +33,28 @@
       projectId: "chorale-bonheur",
       storageBucket: "chorale-bonheur.firebasestorage.app",
       messagingSenderId: "842542859541",
-      appId: "1:842542859541:web:7e93c4abba32204461d51c",
-      measurementId: "G-6LMY3CF4XP"
+      appId: "1:842542859541:web:7e93c4abba32204461d51c"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     async function loadAnnouncements() {
-      const container = document.getElementById("announcementList");
-      container.innerHTML = "<p>Loading...</p>";
-      try {
-        const q = query(collection(db, "announcements"), orderBy("timestamp", "desc"));
-        const snapshot = await getDocs(q);
-        container.innerHTML = "";
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const div = document.createElement("div");
-          div.className = "bg-white border p-4 rounded shadow";
-          div.innerHTML = `
-            <h3 class="text-lg font-semibold mb-2">📌 ${data.title}</h3>
-            <p class="text-sm text-gray-700">${data.content}</p>
-          `;
-          container.appendChild(div);
-        });
-        if (snapshot.empty) {
-          container.innerHTML = "<p class='text-gray-600'>Nta matangazo aboneka ubu.</p>";
-        }
-      } catch (err) {
-        console.error("Failed to load announcements:", err);
-        container.innerHTML = "<p class='text-red-600'>Habaye ikibazo mu gusoma amatangazo.</p>";
-      }
+      const container = document.getElementById("announcementsList");
+      const q = query(collection(db, "announcements"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+      container.innerHTML = '';
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "bg-white p-4 border rounded shadow";
+        div.innerHTML = `
+          <h3 class="text-lg font-semibold mb-1">📌 ${data.title || 'Itangazo'}</h3>
+          <p class="text-sm text-gray-700">${data.body}</p>
+        `;
+        container.appendChild(div);
+      });
     }
 
     loadAnnouncements();
