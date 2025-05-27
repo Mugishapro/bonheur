@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login - Chorale Bonheur</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+  <div class="bg-white p-8 rounded shadow max-w-sm w-full">
+    <h2 class="text-2xl font-bold mb-4 text-center">Injira nka Admin</h2>
+    <input id="emailInput" type="email" placeholder="Email yawe" class="border p-2 w-full mb-4 rounded" />
+    <button id="loginBtn" class="bg-green-700 text-white px-4 py-2 rounded w-full hover:bg-green-800">Injira</button>
+    <p id="status" class="text-sm text-center text-red-600 mt-3"></p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
+      authDomain: "chorale-bonheur.firebaseapp.com",
+      projectId: "chorale-bonheur",
+      storageBucket: "chorale-bonheur.firebasestorage.app",
+      messagingSenderId: "842542859541",
+      appId: "1:842542859541:web:7e93c4abba32204461d51c",
+      measurementId: "G-6LMY3CF4XP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const loginBtn = document.getElementById("loginBtn");
+    const emailInput = document.getElementById("emailInput");
+    const status = document.getElementById("status");
+
+    loginBtn.addEventListener("click", async () => {
+      const email = emailInput.value.trim().toLowerCase();
+      if (!email) {
+        status.textContent = "Andika email yawe.";
+        return;
+      }
+
+      try {
+        const adminRef = doc(db, "admins", email);
+        const adminSnap = await getDoc(adminRef);
+        if (!adminSnap.exists()) {
+          status.textContent = "Nta ruhare wemerewe.";
+          return;
+        }
+        localStorage.setItem("adminEmail", email);
+        window.location.href = "/admin-dashboard.html";
+      } catch (e) {
+        console.error(e);
+        status.textContent = "Habaye ikibazo.";
+      }
+    });
+  </script>
+</body>
+</html>
