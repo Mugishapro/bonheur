@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Komite - Chorale Bonheur</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-gray-800 font-sans">
+  <header class="bg-green-700 text-white p-6 shadow-md">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">Komite ya Chorale</h1>
+      <a href="/" class="text-sm underline hover:text-gray-200">Subira ku rubuga</a>
+    </div>
+  </header>
+
+  <section class="py-12 px-6">
+    <h2 class="text-2xl font-bold text-center mb-6">👥 Abagize Komite ya Chorale Bonheur</h2>
+    <div id="committeeList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto"></div>
+  </section>
+
+  <footer class="bg-green-700 text-white text-center py-4">
+    <p>&copy; 2025 Chorale Bonheur. Uburenganzira bwose burabitswe.</p>
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
+      authDomain: "chorale-bonheur.firebaseapp.com",
+      projectId: "chorale-bonheur",
+      storageBucket: "chorale-bonheur.firebasestorage.app",
+      messagingSenderId: "842542859541",
+      appId: "1:842542859541:web:7e93c4abba32204461d51c",
+      measurementId: "G-6LMY3CF4XP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadCommittee() {
+      const container = document.getElementById("committeeList");
+      container.innerHTML = "<p>Loading...</p>";
+      try {
+        const q = query(collection(db, "committee"), orderBy("role"));
+        const snapshot = await getDocs(q);
+        container.innerHTML = "";
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const div = document.createElement("div");
+          div.className = "bg-white border p-4 rounded shadow";
+          div.innerHTML = `
+            <h3 class="text-lg font-semibold">${data.name}</h3>
+            <p class="text-sm text-gray-700">${data.role}</p>
+          `;
+          container.appendChild(div);
+        });
+        if (snapshot.empty) {
+          container.innerHTML = "<p class='text-gray-600'>Nta bagize komite babonetse.</p>";
+        }
+      } catch (err) {
+        console.error("Failed to load committee:", err);
+        container.innerHTML = "<p class='text-red-600'>Habaye ikibazo mu gusoma komite.</p>";
+      }
+    }
+
+    loadCommittee();
+  </script>
+</body>
+</html>
