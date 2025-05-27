@@ -5,14 +5,15 @@
     { "src": "announcements.html", "use": "@vercel/static" },
     { "src": "members.html", "use": "@vercel/static" },
     { "src": "committee.html", "use": "@vercel/static" },
+    { "src": "contact.html", "use": "@vercel/static" },
+    { "src": "login.html", "use": "@vercel/static" },
     { "src": "admin-dashboard.html", "use": "@vercel/static" },
     { "src": "admin-songs.html", "use": "@vercel/static" },
     { "src": "admin-messages.html", "use": "@vercel/static" },
     { "src": "admin-members.html", "use": "@vercel/static" },
-    { "src": "admin-control.html", "use": "@vercel/static" },
-    { "src": "login.html", "use": "@vercel/static" }
+    { "src": "admin-control.html", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
