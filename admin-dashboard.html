@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="rw">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Dashboard - Chorale Bonheur</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -15,59 +15,71 @@
   </header>
 
   <main class="max-w-4xl mx-auto p-6 space-y-6">
-    <div id="adminRoleSection" class="text-center text-xl font-semibold text-gray-700">Uruhare rwawe: <span id="adminRoleLabel">...</span></div>
-
-    <div id="songsPanel" class="hidden bg-white p-4 rounded shadow">
-      <h2 class="text-2xl font-bold mb-2">🎵 Gucunga Indirimbo</h2>
-      <a href="/admin-songs.html" class="text-blue-600 underline">Injira muri Panel y’Indirimbo</a>
+    <div id="adminRoleSection" class="text-center text-xl font-semibold text-gray-700">
+      Uruhare rwawe: <span id="adminRoleLabel">...</span>
     </div>
 
     <div id="messagesPanel" class="hidden bg-white p-4 rounded shadow">
       <h2 class="text-2xl font-bold mb-2">📩 Gusubiza Ubutumwa</h2>
-      <a href="/admin-messages.html" class="text-blue-600 underline">Fungura Messages Panel</a>
+      <a href="./admin-messages.html" class="text-blue-600 underline">Fungura Messages Panel</a>
+    </div>
+
+    <div id="songsPanel" class="hidden bg-white p-4 rounded shadow">
+      <h2 class="text-2xl font-bold mb-2">🎵 Gucunga Indirimbo</h2>
+      <a href="./admin-songs.html" class="text-blue-600 underline">Injira muri Panel y’Indirimbo</a>
     </div>
 
     <div id="announcementsPanel" class="hidden bg-white p-4 rounded shadow">
       <h2 class="text-2xl font-bold mb-2">📢 Gucunga Amatangazo</h2>
-      <a href="/admin-announcements.html" class="text-blue-600 underline">Jya muri Announcements</a>
+      <a href="./admin-announcements.html" class="text-blue-600 underline">Jya muri Announcements</a>
     </div>
 
     <div id="membersPanel" class="hidden bg-white p-4 rounded shadow">
       <h2 class="text-2xl font-bold mb-2">👥 Gucunga Abaririmbyi & Komite</h2>
-      <a href="/admin-members.html" class="text-blue-600 underline">Injira muri Members & Committee</a>
+      <a href="./admin-members.html" class="text-blue-600 underline">Injira muri Members & Committee</a>
     </div>
 
     <div id="superAdminPanel" class="hidden bg-white p-4 rounded shadow">
       <h2 class="text-2xl font-bold mb-2">👑 Kugenzura Abayobozi</h2>
-      <a href="/admin-control.html" class="text-blue-600 underline">Jya muri Control Panel</a>
+      <a href="./admin-control.html" class="text-blue-600 underline">Jya muri Control Panel</a>
     </div>
+
+    <div id="debugMessage" class="text-center text-sm text-red-600 mt-4 hidden"></div>
   </main>
 
   <script>
     const role = localStorage.getItem("adminRole");
+    const roleLabel = document.getElementById("adminRoleLabel");
+    const debugOutput = document.getElementById("debugMessage");
+
     if (!role) {
       alert("Ntago wemerewe kubona iyi page. Injira ubundi.");
       window.location.href = "/login.html";
+    } else {
+      console.log("🔥 Admin Role found:", role);
+      roleLabel.textContent = role;
+    }
+
+    const panels = {
+      "admin_messages": "messagesPanel",
+      "admin_songs": "songsPanel",
+      "admin_announcements": "announcementsPanel",
+      "admin_members": "membersPanel",
+      "admin_control": "superAdminPanel"
+    };
+
+    if (role in panels) {
+      document.getElementById(panels[role]).classList.remove("hidden");
+    } else {
+      debugOutput.textContent = `⚠️ Role "${role}" ntishoboye kumenyekana. Reba niba iri mu Firestore neza.`;
+      debugOutput.classList.remove("hidden");
+      console.warn("🔍 Role unknown:", role);
     }
 
     document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("adminRole");
+      localStorage.clear();
       window.location.href = "/login.html";
     });
-
-    document.getElementById("adminRoleLabel").textContent = role;
-
-    if (role === "admin_messages") {
-      document.getElementById("messagesPanel").classList.remove("hidden");
-    } else if (role === "admin_songs") {
-      document.getElementById("songsPanel").classList.remove("hidden");
-    } else if (role === "admin_announcements") {
-      document.getElementById("announcementsPanel").classList.remove("hidden");
-    } else if (role === "admin_members") {
-      document.getElementById("membersPanel").classList.remove("hidden");
-    } else if (role === "admin_control") {
-      document.getElementById("superAdminPanel").classList.remove("hidden");
-    }
   </script>
 </body>
 </html>
