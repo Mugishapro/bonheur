@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gucunga Amatangazo - Chorale Bonheur</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+  <header class="bg-green-700 text-white p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">📢 Gucunga Amatangazo</h1>
+      <a href="/admin-dashboard.html" class="text-sm underline hover:text-gray-200">⬅️ Subira kuri Dashboard</a>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto p-6 space-y-10">
+    <section>
+      <h2 class="text-2xl font-bold mb-4">➕ Ongeramo Itangazo</h2>
+      <input id="announcementTitle" type="text" placeholder="Umutwe w'itangazo" class="border p-2 w-full mb-2" />
+      <textarea id="announcementContent" rows="4" placeholder="Ibikubiye mu itangazo..." class="border p-2 w-full whitespace-pre-wrap break-words mb-2"></textarea>
+      <button id="addAnnouncementBtn" class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800">Ongeramo Itangazo</button>
+    </section>
+
+    <section>
+      <h2 class="text-2xl font-bold mb-4">📋 Amatangazo yose</h2>
+      <div id="announcementList" class="space-y-4"></div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
+      authDomain: "chorale-bonheur.firebaseapp.com",
+      projectId: "chorale-bonheur",
+      storageBucket: "chorale-bonheur.firebasestorage.app",
+      messagingSenderId: "842542859541",
+      appId: "1:842542859541:web:7e93c4abba32204461d51c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const email = localStorage.getItem("adminEmail");
+    if (!email) window.location.href = "/login.html";
+
+    async function checkPermission() {
+      const admins = await getDocs(collection(db, "admins"));
+      const admin = admins.docs.find(d => d.id === email);
+      if (!admin || !admin.data().announcementsAdmin) window.location.href = "/admin-dashboard.html";
+    }
+
+    async function loadAnnouncements() {
+      const container = document.getElementById("announcementList");
+      const q = query(collection(db, "announcements"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+      container.innerHTML = "";
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const id = docSnap.id;
+        const div = document.createElement("div");
+        div.className = "bg-white border p-4 rounded shadow";
+        div.innerHTML = `
+          <h3 class="text-lg font-semibold">📌 ${data.title}</h3>
+          <p class="text-sm text-gray-700">${data.content}</p>
+          <button data-id="${id}" class="deleteBtn bg-red-600 text-white px-3 py-1 mt-2 rounded hover:bg-red-700">Siba</button>
+        `;
+        container.appendChild(div);
+      });
+
+      document.querySelectorAll(".deleteBtn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          if (confirm("Urashaka koko gusiba iri tangazo?")) {
+            await deleteDoc(doc(db, "announcements", id));
+            loadAnnouncements();
+          }
+        });
+      });
+    }
+
+    document.getElementById("addAnnouncementBtn").addEventListener("click", async () => {
+      const title = document.getElementById("announcementTitle").value.trim();
+      const content = document.getElementById("announcementContent").value.trim();
+      if (!title || !content) return alert("Nylyuzuzemo byose.");
+      await addDoc(collection(db, "announcements"), { title, content, timestamp: serverTimestamp() });
+      document.getElementById("announcementTitle").value = "";
+      document.getElementById("announcementContent").value = "";
+      loadAnnouncements();
+    });
+
+    await checkPermission();
+    await loadAnnouncements();
+  </script>
+</body>
+</html>
