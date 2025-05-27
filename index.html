@@ -1,46 +1,79 @@
 <!DOCTYPE html>
-<html lang="rw">
+<html lang="rw" class="transition-colors duration-300">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chorale Bonheur</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            darkBg: '#0f172a',
+            darkCard: '#1e293b'
+          },
+          animation: {
+            fade: 'fadeIn 1s ease-out forwards',
+            'fade-up': 'fadeInUp 0.8s ease-out forwards'
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' }
+            },
+            fadeInUp: {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
   <link rel="icon" href="/favicon.ico" />
 </head>
-<body class="bg-white text-gray-800 font-sans">
-  <header class="bg-green-700 text-white p-6 shadow-md">
+<body class="bg-white dark:bg-darkBg text-gray-800 dark:text-gray-200 font-sans transition-all duration-500">
+  <header class="bg-green-700 dark:bg-green-800 text-white p-6 shadow-md">
     <div class="container mx-auto flex justify-between items-center">
       <h1 class="text-2xl font-bold">Chorale Bonheur</h1>
-      <nav class="space-x-4 text-sm">
-        <a href="#home" class="hover:underline">Ahabanza</a>
-        <a href="#songs" class="hover:underline">Indirimbo</a>
-        <a href="/announcements.html" class="hover:underline">Amatangazo</a>
-        <a href="/members.html" class="hover:underline">Abaririmbyi</a>
-        <a href="/committee.html" class="hover:underline">Komite</a>
-        <a href="#chatbot" class="hover:underline">Twandikire</a>
-        <a href="/login.html" class="underline hover:text-gray-200">Admin Panel</a>
-      </nav>
+      <button id="menuToggle" class="md:hidden text-white focus:outline-none">☰</button>
+<nav id="mainNav" class="hidden md:flex flex-col md:flex-row md:gap-2 gap-1 absolute md:static top-20 left-0 w-full md:w-auto bg-green-700 md:bg-transparent px-6 py-4 md:p-0 z-50 text-sm">
+  <a href="#home" class="bg-white text-green-700 px-3 py-1 rounded hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Ahabanza</a>
+  <a href="#songs" class="bg-white text-green-700 px-3 py-1 rounded hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Indirimbo</a>
+  <a href="/announcements.html" class="bg-white text-green-700 px-3 py-1 rounded hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Amatangazo</a>
+  <a href="/members.html" class="bg-white text-green-700 px-3 py-1 rounded hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Abaririmbyi</a>
+  <a href="/committee.html" class="bg-white text-green-700 px-3 py-1 rounded hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Komite</a>
+  <a href="#chatbot" class="bg-white text-green-700 px-3 py-1 rounded hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Twandikire</a>
+  <a href="/login.html" class="bg-white text-green-700 px-3 py-1 rounded hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Admin Panel</a>
+  <button id="toggleTheme" class="bg-white dark:bg-darkCard text-green-700 dark:text-white px-2 py-1 rounded border dark:border-gray-600">🌓</button>
+</nav>
     </div>
   </header>
 
-  <section id="home" class="bg-green-50 py-16 text-center">
+  <section id="home" class="bg-green-50 dark:bg-darkCard py-16 text-center animate-fade-up">
     <h2 class="text-4xl font-bold mb-4">Ikaze kuri Chorale Bonheur</h2>
     <p class="text-lg max-w-xl mx-auto">Igitabo cy'indirimbo za Chorale yacu. Soma, Shakisha, kandi Ushimishe Imana mu ndirimbo.</p>
   </section>
 
-  <section id="songs" class="py-12 px-6">
+  <section id="songs" class="py-12 px-6 animate-fade-up">
     <h3 class="text-2xl font-bold text-center mb-6">Urutonde rw'Indirimbo</h3>
     <div class="max-w-md mx-auto mb-4">
-      <input id="searchInput" type="text" placeholder="Shakisha indirimbo..." class="border p-2 w-full mb-4" />
+      <input id="searchInput" type="text" placeholder="Shakisha indirimbo..." class="border p-2 w-full mb-4 rounded dark:bg-darkCard dark:border-gray-700" />
     </div>
     <div id="songList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+<div class="flex justify-center mt-6 space-x-4">
+  <button id="prevPage" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600">⬅️ Previous</button>
+  <button id="nextPage" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600">Next ➡️</button>
+</div>
   </section>
 
-  <section id="chatbot" class="py-12 px-6 text-center">
-    <h3 class="text-2xl font-bold mb-4">Ganira na Chorale AI</h3>
-    <p class="mb-4 text-gray-700">Andika ubutumwa bwawe hano hepfo, admin azabusoma agusubize:</p>
+  <section id="chatbot" class="py-12 px-6 text-center animate-fade-up">
+    <h3 class="text-2xl font-bold mb-4">Twandikire hano</h3>
+    <p class="mb-4 text-gray-700 dark:text-gray-300">Andika ubutumwa bwawe hano hepfo, admin azabusoma agusubize:</p>
     <div class="max-w-xl mx-auto space-y-4">
-      <textarea id="userMessage" rows="4" placeholder="Andika ubutumwa..." class="border p-3 w-full rounded"></textarea>
+      <textarea id="userMessage" rows="4" placeholder="Andika ubutumwa..." class="border p-3 w-full rounded dark:bg-darkCard dark:border-gray-600"></textarea>
       <button id="sendMessageBtn" class="bg-green-700 text-white px-6 py-2 rounded hover:bg-green-800">Ohereza</button>
       <p id="messageStatus" class="text-sm text-gray-600"></p>
     </div>
@@ -50,9 +83,22 @@
     </div>
   </section>
 
-  <footer class="bg-green-700 text-white text-center py-4">
+  <footer class="bg-green-700 dark:bg-green-900 text-white text-center py-4 animate-fade">
     <p>&copy; 2025 Chorale Bonheur. Uburenganzira bwose burabitswe.</p>
   </footer>
+<script>
+  const menuToggle = document.getElementById('menuToggle');
+  const mainNav = document.getElementById('mainNav');
+  menuToggle?.addEventListener('click', () => {
+    mainNav.classList.toggle('hidden');
+  });
+</script>
+
+  <script>
+    document.getElementById("toggleTheme").addEventListener("click", () => {
+      document.documentElement.classList.toggle("dark");
+    });
+  </script>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -64,43 +110,70 @@
       projectId: "chorale-bonheur",
       storageBucket: "chorale-bonheur.firebasestorage.app",
       messagingSenderId: "842542859541",
-      appId: "1:842542859541:web:7e93c4abba32204461d51c",
-      measurementId: "G-6LMY3CF4XP"
+      appId: "1:842542859541:web:7e93c4abba32204461d51c"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    async function loadSongs() {
-      const querySnapshot = await getDocs(collection(db, "songs"));
-      const songs = [];
-      querySnapshot.forEach((doc) => {
-        songs.push(doc.data());
-      });
-      displaySongs(songs);
-    }
+    let currentPage = 1;
+const itemsPerPage = 10;
+let songsData = [];
+
+async function loadSongs() {
+  const querySnapshot = await getDocs(collection(db, "songs"));
+  songsData = [];
+  querySnapshot.forEach((doc) => {
+    songsData.push(doc.data());
+  });
+  displaySongs(songsData);
+}
 
     function displaySongs(songs) {
-      const songList = document.getElementById('songList');
-      const query = document.getElementById('searchInput').value.toLowerCase();
-      songList.innerHTML = '';
-      songs.filter(song => song.title.toLowerCase().includes(query)).forEach((song, index) => {
-        const card = document.createElement('div');
-        card.className = 'song-card bg-white border shadow-sm p-4 rounded-xl';
-        card.innerHTML = `
-          <h4 class="font-semibold text-lg mb-2">${index + 1}. ${song.title}</h4>
-          <p class="text-sm">Icyiciro: ${song.category}</p>
-          <button class="toggle-lyrics mt-2 text-green-700 hover:underline">Soma indirimbo</button>
-          <div class="lyrics hidden mt-2 text-sm whitespace-pre-wrap break-words max-h-60 overflow-y-auto border-t pt-2">${song.lyrics}</div>
-        `;
-        card.querySelector('.toggle-lyrics').addEventListener('click', () => {
-          card.querySelector('.lyrics').classList.toggle('hidden');
-        });
-        songList.appendChild(card);
+  const songList = document.getElementById('songList');
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = songs.filter(song => song.title.toLowerCase().includes(query));
+  const start = (currentPage - 1) * itemsPerPage;
+  const paginated = filtered.slice(start, start + itemsPerPage);
+  songList.innerHTML = '';
+  paginated.forEach((song, index) => {
+    const card = document.createElement('div');
+    card.className = 'song-card bg-white dark:bg-darkCard border shadow-sm p-4 rounded-xl';
+    card.innerHTML = `
+      <h4 class="font-semibold text-lg mb-2">${start + index + 1}. ${song.title}</h4>
+      <p class="text-sm">Icyiciro: ${song.category}</p>
+      <button class="toggle-lyrics mt-2 text-green-700 hover:underline">Soma indirimbo</button>
+      <div class="lyrics hidden mt-2 text-sm whitespace-pre-wrap break-words max-h-60 overflow-y-auto border-t pt-2">${song.lyrics}</div>
+    `;
+    card.querySelector('.toggle-lyrics').addEventListener('click', () => {
+      card.querySelector('.lyrics').classList.toggle('hidden');
+    });
+    songList.appendChild(card);
+  });
+}
       });
     }
 
-    document.getElementById('searchInput').addEventListener('input', loadSongs);
+    document.getElementById('searchInput').addEventListener('input', () => displaySongs(songsData));
+
+// Pagination
+const nextPageBtn = document.getElementById('nextPage');
+const prevPageBtn = document.getElementById('prevPage');
+
+nextPageBtn.addEventListener('click', () => {
+  const maxPage = Math.ceil(songsData.filter(song => song.title.toLowerCase().includes(document.getElementById('searchInput').value.toLowerCase())).length / itemsPerPage);
+  if (currentPage < maxPage) {
+    currentPage++;
+    displaySongs(songsData);
+  }
+});
+
+prevPageBtn.addEventListener('click', () => {
+  if (currentPage > 1) {
+    currentPage--;
+    displaySongs(songsData);
+  }
+});
 
     const sendBtn = document.getElementById('sendMessageBtn');
     if (sendBtn) {
@@ -137,7 +210,7 @@
         const msg = doc.data();
         if (msg.reply) {
           const div = document.createElement('div');
-          div.className = 'bg-white border p-3 rounded shadow';
+          div.className = 'bg-white dark:bg-darkCard border p-3 rounded shadow';
           div.innerHTML = `<p class='font-semibold'>💬 ${msg.reply}</p>`;
           container.appendChild(div);
         }
