@@ -57,6 +57,11 @@
     <p class="text-lg max-w-xl mx-auto">Igitabo cy'indirimbo za Chorale yacu. Soma, Shakisha, kandi Ushimishe Imana mu ndirimbo.</p>
   </section>
 
+  <section id="counter" class="py-12 text-center animate-fade-up">
+    <h3 class="text-3xl font-bold mb-4">🎵 Indirimbo ziri kuri Site</h3>
+    <p class="text-5xl font-bold text-green-600 dark:text-green-400" id="songCounter">0</p>
+  </section>
+
   <section id="songs" class="py-12 px-6 animate-fade-up">
     <h3 class="text-2xl font-bold text-center mb-6">Urutonde rw'Indirimbo</h3>
     <div class="max-w-md mx-auto mb-4">
@@ -91,6 +96,19 @@
   document.getElementById("toggleTheme").addEventListener("click", () => {
     document.documentElement.classList.toggle("dark");
   });
+
+  // Live counter script
+  async function fetchSongCount() {
+    try {
+      const res = await fetch("https://firestore.googleapis.com/v1/projects/chorale-bonheur/databases/(default)/documents/songs");
+      const data = await res.json();
+      const count = data.documents ? data.documents.length : 0;
+      document.getElementById("songCounter").textContent = count;
+    } catch (err) {
+      console.error("Live counter error:", err);
+    }
+  }
+  fetchSongCount();
 </script>
 </body>
 </html>
