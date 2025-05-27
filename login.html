@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="rw">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Injira nka Admin - Chorale Bonheur</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -11,10 +11,17 @@
     <h1 class="text-2xl font-bold text-center mb-4">Injira nka Admin</h1>
     <p class="text-sm text-gray-600 text-center mb-6">Shyiramo izina n'ijambo ry'ibanga</p>
 
-    <input type="text" id="username" placeholder="Izina rya admin" class="border p-2 w-full mb-4 rounded">
-    <input type="password" id="password" placeholder="Ijambo ry'ibanga" class="border p-2 w-full mb-4 rounded">
+    <input type="text" id="username" placeholder="Izina rya admin" class="border p-2 w-full mb-4 rounded" />
+    <input type="password" id="password" placeholder="Ijambo ry'ibanga" class="border p-2 w-full mb-4 rounded" />
     <button id="loginBtn" class="bg-green-700 text-white px-4 py-2 w-full rounded hover:bg-green-800">Injira</button>
+
     <p id="statusMessage" class="text-center text-sm text-red-600 mt-4"></p>
+
+    <p class="text-center text-sm mt-6">
+      <a href="/index.html" class="text-green-700 underline hover:text-green-900">
+        ⬅️ Subira ku rubuga rwa Chorale
+      </a>
+    </p>
   </div>
 
   <script type="module">
@@ -57,7 +64,7 @@
         }
       } catch (e) {
         console.error("Login error:", e);
-        status.textContent = "Habaye ikibazo kinini. Ongera ugerageze.";
+        status.textContent = "Habaye ikibazo. Ongera ugerageze.";
       }
     });
   </script>
