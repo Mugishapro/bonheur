@@ -9,38 +9,55 @@
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
   <div class="bg-white p-8 rounded shadow-md w-full max-w-sm">
     <h1 class="text-2xl font-bold text-center mb-4">Injira nka Admin</h1>
-    <p class="text-sm text-gray-600 text-center mb-6">Shyiramo ijambo ry'ibanga ry'umwanya wawe</p>
+    <p class="text-sm text-gray-600 text-center mb-6">Shyiramo izina n'ijambo ry'ibanga</p>
 
-    <input type="password" id="adminPassword" placeholder="Ijambo ry'ibanga" class="border p-2 w-full mb-4 rounded">
+    <input type="text" id="username" placeholder="Izina rya admin" class="border p-2 w-full mb-4 rounded">
+    <input type="password" id="password" placeholder="Ijambo ry'ibanga" class="border p-2 w-full mb-4 rounded">
     <button id="loginBtn" class="bg-green-700 text-white px-4 py-2 w-full rounded hover:bg-green-800">Injira</button>
     <p id="statusMessage" class="text-center text-sm text-red-600 mt-4"></p>
   </div>
 
-  <script>
-    const passwords = {
-      "admin_messages": "bon-msg2025",
-      "admin_songs": "bon-song2025",
-      "admin_announcements": "bon-ann2025",
-      "admin_members": "bon-mem2025",
-      "admin_control": "bon-ctrl2025"
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
+      authDomain: "chorale-bonheur.firebaseapp.com",
+      projectId: "chorale-bonheur",
+      storageBucket: "chorale-bonheur.firebasestorage.app",
+      messagingSenderId: "842542859541",
+      appId: "1:842542859541:web:7e93c4abba32204461d51c"
     };
 
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const password = document.getElementById("adminPassword").value.trim();
-      let matchedRole = null;
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-      for (const [role, pass] of Object.entries(passwords)) {
-        if (password === pass) {
-          matchedRole = role;
-          break;
-        }
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const status = document.getElementById("statusMessage");
+
+      if (!username || !password) {
+        status.textContent = "Uzuza izina n'ijambo ry'ibanga byose.";
+        return;
       }
 
-      if (matchedRole) {
-        localStorage.setItem("adminRole", matchedRole);
-        window.location.href = "/admin-dashboard.html";
-      } else {
-        document.getElementById("statusMessage").textContent = "Ijambo ry'ibanga si ryo.";
+      try {
+        const q = query(collection(db, "admins"), where("username", "==", username), where("password", "==", password));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          status.textContent = "Izina cyangwa ijambo ry'ibanga si byo.";
+        } else {
+          const userData = snapshot.docs[0].data();
+          localStorage.setItem("adminRole", userData.role);
+          localStorage.setItem("adminName", userData.username);
+          window.location.href = "/admin-dashboard.html";
+        }
+      } catch (e) {
+        console.error("Login error:", e);
+        status.textContent = "Habaye ikibazo kinini. Ongera ugerageze.";
       }
     });
   </script>
