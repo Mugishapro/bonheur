@@ -3,28 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gusubiza Ubutumwa - Chorale Bonheur</title>
+  <title>Abaririmbyi - Chorale Bonheur</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans">
-
-  <header class="bg-green-700 text-white p-4 shadow">
+<body class="bg-white text-gray-800 font-sans">
+  <header class="bg-green-700 text-white p-6 shadow-md">
     <div class="container mx-auto flex justify-between items-center">
-      <h1 class="text-xl font-bold">📩 Gusubiza Ubutumwa</h1>
-      <button id="logoutBtn" class="text-sm underline hover:text-gray-200">Sohoka</button>
+      <h1 class="text-xl font-bold">Abaririmbyi</h1>
+      <a href="/" class="text-sm underline hover:text-gray-200">Subira ku rubuga</a>
     </div>
   </header>
 
-  <main class="max-w-4xl mx-auto p-6">
-    <div id="messagesContainer" class="space-y-6"></div>
-    <div id="noAccess" class="hidden text-center text-red-600 mt-6 font-semibold text-lg">
-      🚫 Ntago wemerewe kureba iyi page. Injira bwa mbere.
-    </div>
-  </main>
+  <section class="py-12 px-6">
+    <h2 class="text-2xl font-bold text-center mb-6">🎶 Urutonde rw'Abaririmbyi ba Chorale Bonheur</h2>
+    <div id="memberList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto"></div>
+  </section>
+
+  <footer class="bg-green-700 text-white text-center py-4">
+    <p>&copy; 2025 Chorale Bonheur. Uburenganzira bwose burabitswe.</p>
+  </footer>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getFirestore, collection, query, orderBy, getDocs, updateDoc, doc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import { getFirestore, collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
@@ -32,69 +33,40 @@
       projectId: "chorale-bonheur",
       storageBucket: "chorale-bonheur.firebasestorage.app",
       messagingSenderId: "842542859541",
-      appId: "1:842542859541:web:7e93c4abba32204461d51c"
+      appId: "1:842542859541:web:7e93c4abba32204461d51c",
+      measurementId: "G-6LMY3CF4XP"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const role = localStorage.getItem("adminRole");
-
-    if (role !== "admin_messages") {
-      document.getElementById("messagesContainer").classList.add("hidden");
-      document.getElementById("noAccess").classList.remove("hidden");
-      setTimeout(() => {
-        window.location.href = "/login.html";
-      }, 2500);
-    } else {
-      loadMessages();
-    }
-
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.clear();
-      window.location.href = "/login.html";
-    });
-
-    async function loadMessages() {
-      const container = document.getElementById("messagesContainer");
-      const q = query(collection(db, "messages"), orderBy("timestamp", "desc"));
-      const snapshot = await getDocs(q);
-
-      container.innerHTML = '';
-      snapshot.forEach(docSnap => {
-        const msg = docSnap.data();
-        const msgId = docSnap.id;
-        const reply = msg.reply || "";
-        const time = msg.timestamp?.toDate().toLocaleString() || 'Igihe kitazwi';
-
-        const div = document.createElement('div');
-        div.className = "bg-white border rounded shadow p-4";
-        div.innerHTML = `
-          <p class="text-lg mb-1 font-semibold">📨 ${msg.text}</p>
-          <p class="text-sm text-gray-500 mb-2">🕒 ${time}</p>
-          <textarea class="reply p-2 border w-full rounded mb-2" placeholder="Andika igisubizo...">${reply}</textarea>
-          <button class="save-reply bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700" data-id="${msgId}">
-            Bika Igisubizo
-          </button>
-        `;
-        container.appendChild(div);
-      });
-
-      document.querySelectorAll(".save-reply").forEach(button => {
-        button.addEventListener("click", async () => {
-          const msgId = button.getAttribute("data-id");
-          const replyText = button.previousElementSibling.value.trim();
-          if (!replyText) return alert("Andika igisubizo mbere yo kubika.");
-          try {
-            await updateDoc(doc(db, "messages", msgId), { reply: replyText });
-            alert("✔️ Igisubizo cyabitswe!");
-          } catch (e) {
-            console.error("Error:", e);
-            alert("❌ Habaye ikibazo.");
-          }
+    async function loadMembers() {
+      const container = document.getElementById("memberList");
+      container.innerHTML = "<p>Loading...</p>";
+      try {
+        const q = query(collection(db, "members"), orderBy("name"));
+        const snapshot = await getDocs(q);
+        container.innerHTML = "";
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const div = document.createElement("div");
+          div.className = "bg-white border p-4 rounded shadow";
+          div.innerHTML = `
+            <h3 class="text-lg font-semibold">${data.name}</h3>
+            <p class="text-sm text-gray-700">${data.part} | ${data.status}</p>
+          `;
+          container.appendChild(div);
         });
-      });
+        if (snapshot.empty) {
+          container.innerHTML = "<p class='text-gray-600'>Nta baririmbyi babonetse ubu.</p>";
+        }
+      } catch (err) {
+        console.error("Failed to load members:", err);
+        container.innerHTML = "<p class='text-red-600'>Habaye ikibazo mu gusoma abaririmbyi.</p>";
+      }
     }
+
+    loadMembers();
   </script>
 </body>
 </html>
