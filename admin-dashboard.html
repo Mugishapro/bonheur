@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Chorale Bonheur</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+  <header class="bg-green-700 text-white p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">Dashboard y’Abayobozi</h1>
+      <button id="logoutBtn" class="text-sm underline hover:text-gray-200">Sohoka</button>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto p-6 space-y-6">
+    <div id="adminRoleSection" class="text-center text-xl font-semibold text-gray-700">Uruhare rwawe: <span id="adminRoleLabel">...</span></div>
+
+    <div id="songsPanel" class="hidden bg-white p-4 rounded shadow">
+      <h2 class="text-2xl font-bold mb-4">🎵 Gucunga Indirimbo</h2>
+      <a href="/admin-songs.html" class="text-blue-600 underline">Injira muri Panel y’Indirimbo</a>
+    </div>
+
+    <div id="messagesPanel" class="hidden bg-white p-4 rounded shadow">
+      <h2 class="text-2xl font-bold mb-4">📩 Gusubiza Ubutumwa</h2>
+      <a href="/admin-messages.html" class="text-blue-600 underline">Fungura Messages Panel</a>
+    </div>
+
+    <div id="announcementsPanel" class="hidden bg-white p-4 rounded shadow">
+      <h2 class="text-2xl font-bold mb-4">📢 Gucunga Amatangazo</h2>
+      <a href="/admin-announcements.html" class="text-blue-600 underline">Jya muri Announcements</a>
+    </div>
+
+    <div id="membersPanel" class="hidden bg-white p-4 rounded shadow">
+      <h2 class="text-2xl font-bold mb-4">👥 Gucunga Abaririmbyi & Komite</h2>
+      <a href="/admin-members.html" class="text-blue-600 underline">Injira muri Members & Committee</a>
+    </div>
+
+    <div id="superAdminPanel" class="hidden bg-white p-4 rounded shadow">
+      <h2 class="text-2xl font-bold mb-4">👑 Kugenzura Abayobozi</h2>
+      <a href="/admin-control.html" class="text-blue-600 underline">Jya muri Control Panel</a>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
+      authDomain: "chorale-bonheur.firebaseapp.com",
+      projectId: "chorale-bonheur",
+      storageBucket: "chorale-bonheur.firebasestorage.app",
+      messagingSenderId: "842542859541",
+      appId: "1:842542859541:web:7e93c4abba32204461d51c",
+      measurementId: "G-6LMY3CF4XP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const adminEmail = localStorage.getItem("adminEmail");
+if (!adminEmail || typeof adminEmail !== 'string') {
+  alert("Ntago wemerewe kubona iyi page. Injira ubundi.");
+  window.location.href = "/login.html";
+}
+    if (!adminEmail) window.location.href = "/login.html";
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("adminEmail");
+      window.location.href = "/login.html";
+    });
+
+    async function loadAdminRole() {
+      const adminRef = doc(db, "admins", adminEmail);
+      const adminSnap = await getDoc(adminRef);
+      if (!adminSnap.exists()) {
+  alert("Nta ruhare wemerewe."
+  );
+  localStorage.removeItem("adminEmail");
+  window.location.href = "/login.html";
+  return;
+}
+        return;
+      }
+      const data = adminSnap.data();
+      const roles = Object.keys(data).filter(r => data[r]);
+document.getElementById("adminRoleLabel").textContent = roles.length > 0 ? (data.superAdmin ? "Super Admin" : roles.join(", ")) : "Nta nshingano zigaragara";
+      if (data.songsAdmin) document.getElementById("songsPanel").classList.remove("hidden");
+      if (data.messagesAdmin) document.getElementById("messagesPanel").classList.remove("hidden");
+      if (data.announcementsAdmin) document.getElementById("announcementsPanel").classList.remove("hidden");
+      if (data.membersAdmin) document.getElementById("membersPanel").classList.remove("hidden");
+      if (data.superAdmin) document.getElementById("superAdminPanel").classList.remove("hidden");
+    }
+
+    loadAdminRole();
+  </script>
+</body>
+</html>
