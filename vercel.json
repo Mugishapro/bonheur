@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "name": "chorale-bonheur",
+  "builds": [
+    {
+      "src": "bonheur.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/bonheur.html"
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Chorale Bonheur</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+  <header class="bg-green-700 text-white p-4 shadow-md">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">Chorale Bonheur Admin</h1>
+      <a href="/" class="text-sm underline hover:text-gray-200">⬅️ Sohoka ujye ku rubuga rwa Chorale</a>
+    </div>
+  </header>
+  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded shadow max-w-sm w-full">
+      <h2 class="text-xl font-bold mb-4">Injiza ijambo ry'ibanga</h2>
+      <input id="adminPassword" type="password" class="border p-2 w-full mb-4" placeholder="Ijambo ry'ibanga..." />
+      <button id="submitPassword" class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 w-full">Emeza</button>
+    </div>
+  </div>
+
+  <div id="adminContent" class="hidden max-w-4xl mx-auto p-6 space-y-12">
+    <section>
+      <h2 class="text-2xl font-bold mb-4">➕ Ongeramo Indirimbo</h2>
+      <input id="songTitle" type="text" placeholder="Izina ry’indirimbo" class="border p-2 w-full mb-2" />
+      <input id="songCategory" type="text" placeholder="Icyiciro (nko: Gushimisha Imana)" class="border p-2 w-full mb-2" />
+      <textarea id="songLyrics" rows="4" placeholder="Amagambo y’indirimbo..." class="border p-2 w-full whitespace-pre-wrap break-words mb-2"></textarea>
+      <button id="addSongBtn" class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800">Ongeramo Indirimbo</button>
+    </section>
+
+    <section>
+      <h2 class="text-2xl font-bold mb-4">📨 Ubutumwa & Ibisubizo</h2>
+      <div id="messages" class="space-y-6"></div>
+    </section>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, collection, getDocs, addDoc, updateDoc, doc, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
+      authDomain: "chorale-bonheur.firebaseapp.com",
+      projectId: "chorale-bonheur",
+      storageBucket: "chorale-bonheur.firebasestorage.app",
+      messagingSenderId: "842542859541",
+      appId: "1:842542859541:web:7e93c4abba32204461d51c",
+      measurementId: "G-6LMY3CF4XP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const modal = document.getElementById('loginModal');
+    const content = document.getElementById('adminContent');
+    document.getElementById('submitPassword').addEventListener('click', () => {
+      const input = document.getElementById('adminPassword').value;
+      if (input === "bonheur2025") {
+        modal.classList.add('hidden');
+        content.classList.remove('hidden');
+        loadMessages();
+      } else {
+        alert("Ijambo ry'ibanga si ryo.");
+      }
+    });
+
+    document.getElementById('addSongBtn').addEventListener('click', async () => {
+      const title = document.getElementById('songTitle').value.trim();
+      const category = document.getElementById('songCategory').value.trim();
+      const lyrics = document.getElementById('songLyrics').value.trim();
+      if (!title || !category || !lyrics) {
+        alert("Nylyuzuzemo byose.");
+        return;
+      }
+      try {
+        await addDoc(collection(db, "songs"), { title, category, lyrics });
+        alert("Indirimbo yoherejwe neza.");
+        document.getElementById('songTitle').value = '';
+        document.getElementById('songCategory').value = '';
+        document.getElementById('songLyrics').value = '';
+      } catch (e) {
+        console.error("Error: ", e);
+      }
+    });
+
+    async function loadMessages() {
+      const container = document.getElementById('messages');
+      const q = query(collection(db, "messages"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+
+      container.innerHTML = '';
+      snapshot.forEach(docSnap => {
+        const msg = docSnap.data();
+        const msgId = docSnap.id;
+        const reply = msg.reply || "";
+        const time = msg.timestamp?.toDate().toLocaleString() || 'Igihe kitazwi';
+        const div = document.createElement('div');
+        div.className = "bg-white border rounded shadow p-4";
+        div.innerHTML = `
+          <p class="text-lg">📩 ${msg.text}</p>
+          <p class="text-sm text-gray-500">⏰ ${time}</p>
+          <textarea class="reply p-2 border w-full rounded mt-2" placeholder="Andika igisubizo...">${reply}</textarea>
+          <button class="save-reply mt-2 bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700" data-id="${msgId}">Bika igisubizo</button>
+        `;
+        container.appendChild(div);
+      });
+
+      document.querySelectorAll('.save-reply').forEach(button => {
+        button.addEventListener('click', async () => {
+          const msgId = button.getAttribute('data-id');
+          const replyText = button.previousElementSibling.value.trim();
+          if (!replyText) return alert("Andika igisubizo mbere yo kubika.");
+          try {
+            await updateDoc(doc(db, "messages", msgId), { reply: replyText });
+            alert("Igisubizo cyakiriwe neza.");
+          } catch (e) {
+            alert("Habaye ikibazo kubika igisubizo.");
+            console.error(e);
+          }
+        });
+      });
+    }
+  </script>
+</body>
+</html>
