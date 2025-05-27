@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chorale Bonheur</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-gray-800 font-sans">
+  <header class="bg-green-700 text-white p-6 shadow-md">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">Chorale Bonheur</h1>
+      <a href="/admin.html" class="text-sm underline hover:text-gray-200">Admin Panel</a>
+    </div>
+  </header>
+
+  <section id="home" class="bg-green-50 py-16 text-center">
+    <h2 class="text-4xl font-bold mb-4">Ikaze kuri Chorale Bonheur</h2>
+    <p class="text-lg max-w-xl mx-auto">Igitabo cy'indirimbo za Chorale yacu. Soma, Shakisha, kandi Ushimishe Imana mu ndirimbo.</p>
+  </section>
+
+  <section id="songs" class="py-12 px-6">
+    <h3 class="text-2xl font-bold text-center mb-6">Urutonde rw'Indirimbo</h3>
+    <div class="max-w-md mx-auto mb-4">
+      <input id="searchInput" type="text" placeholder="Shakisha indirimbo..." class="border p-2 w-full mb-4" />
+    </div>
+    <div id="songList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+  </section>
+
+  <section id="chatbot" class="py-12 px-6 text-center">
+    <h3 class="text-2xl font-bold mb-4">Ganira na Chorale AI</h3>
+    <p class="mb-4 text-gray-700">Andika ubutumwa bwawe hano hepfo, admin azabusoma agusubize:</p>
+    <div class="max-w-xl mx-auto space-y-4">
+      <textarea id="userMessage" rows="4" placeholder="Andika ubutumwa..." class="border p-3 w-full rounded"></textarea>
+      <button id="sendMessageBtn" class="bg-green-700 text-white px-6 py-2 rounded hover:bg-green-800">Ohereza</button>
+      <p id="messageStatus" class="text-sm text-gray-600"></p>
+    </div>
+    <div class="max-w-2xl mx-auto mt-10">
+      <h4 class="text-xl font-semibold mb-2">🗣 Ibisubizo byatanzwe na Admin</h4>
+      <div id="adminReplies" class="space-y-4 text-left"></div>
+    </div>
+  </section>
+
+  <footer class="bg-green-700 text-white text-center py-4">
+    <p>&copy; 2025 Chorale Bonheur. Uburenganzira bwose burabitswe.</p>
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, collection, getDocs, addDoc, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
+      authDomain: "chorale-bonheur.firebaseapp.com",
+      projectId: "chorale-bonheur",
+      storageBucket: "chorale-bonheur.firebasestorage.app",
+      messagingSenderId: "842542859541",
+      appId: "1:842542859541:web:7e93c4abba32204461d51c",
+      measurementId: "G-6LMY3CF4XP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadSongs() {
+      const querySnapshot = await getDocs(collection(db, "songs"));
+      const songs = [];
+      querySnapshot.forEach((doc) => {
+        songs.push(doc.data());
+      });
+      displaySongs(songs);
+    }
+
+    function displaySongs(songs) {
+      const songList = document.getElementById('songList');
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      songList.innerHTML = '';
+      songs.filter(song => song.title.toLowerCase().includes(query)).forEach((song, index) => {
+        const card = document.createElement('div');
+        card.className = 'song-card bg-white border shadow-sm p-4 rounded-xl';
+        card.innerHTML = `
+          <h4 class="font-semibold text-lg mb-2">${index + 1}. ${song.title}</h4>
+          <p class="text-sm">Icyiciro: ${song.category}</p>
+          <button class="toggle-lyrics mt-2 text-green-700 hover:underline">Soma indirimbo</button>
+          <div class="lyrics hidden mt-2 text-sm whitespace-pre-wrap break-words max-h-60 overflow-y-auto border-t pt-2">${song.lyrics}</div>
+        `;
+        card.querySelector('.toggle-lyrics').addEventListener('click', () => {
+          card.querySelector('.lyrics').classList.toggle('hidden');
+        });
+        songList.appendChild(card);
+      });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', loadSongs);
+
+    const sendBtn = document.getElementById('sendMessageBtn');
+    if (sendBtn) {
+      sendBtn.addEventListener('click', async () => {
+        const message = document.getElementById('userMessage').value.trim();
+        const status = document.getElementById('messageStatus');
+
+        if (!message) {
+          status.textContent = "Andika ubutumwa mbere yo kohereza.";
+          return;
+        }
+
+        try {
+          await addDoc(collection(db, "messages"), {
+            text: message,
+            timestamp: serverTimestamp()
+          });
+          status.textContent = "Ubutumwa bwoherejwe neza! Admin arabubona.";
+          document.getElementById('userMessage').value = '';
+          loadReplies();
+        } catch (e) {
+          console.error("Error adding message: ", e);
+          status.textContent = "Habaye ikibazo wohereza ubutumwa.";
+        }
+      });
+    }
+
+    async function loadReplies() {
+      const container = document.getElementById('adminReplies');
+      const q = query(collection(db, "messages"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+      container.innerHTML = '';
+      snapshot.forEach(doc => {
+        const msg = doc.data();
+        if (msg.reply) {
+          const div = document.createElement('div');
+          div.className = 'bg-white border p-3 rounded shadow';
+          div.innerHTML = `<p class='font-semibold'>💬 ${msg.reply}</p>`;
+          container.appendChild(div);
+        }
+      });
+    }
+
+    loadSongs();
+    loadReplies();
+  </script>
+</body>
+</html>
