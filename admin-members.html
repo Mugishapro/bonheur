@@ -3,29 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Abaririmbyi - Chorale Bonheur</title>
+  <title>Abanyamuryango & Komite - Chorale Bonheur</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-white text-gray-800 font-sans">
-  <header class="bg-green-700 text-white p-6 shadow-md">
-    <div class="container mx-auto flex justify-between items-center">
-      <h1 class="text-xl font-bold">Abaririmbyi</h1>
-      <a href="/" class="text-sm underline hover:text-gray-200">Subira ku rubuga</a>
-    </div>
+<body class="bg-gray-100 text-gray-800 font-sans">
+
+  <header class="bg-green-700 text-white p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">👥 Gucunga Abaririmbyi & Komite</h1>
+    <a href="/admin-dashboard.html" class="underline text-sm hover:text-gray-200">⬅️ Subira kuri Dashboard</a>
   </header>
 
-  <section class="py-12 px-6">
-    <h2 class="text-2xl font-bold text-center mb-6">🎶 Urutonde rw'Abaririmbyi ba Chorale Bonheur</h2>
-    <div id="memberList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto"></div>
-  </section>
+  <main class="max-w-4xl mx-auto p-6 space-y-8">
+    <section>
+      <h2 class="text-xl font-semibold mb-4">➕ Ongeramo Umuntu</h2>
+      <input id="nameInput" type="text" placeholder="Amazina" class="border p-2 rounded w-full mb-2" />
+      <select id="typeSelect" class="border p-2 rounded w-full mb-2">
+        <option value="">-- Hitamo Icyiciro --</option>
+        <option value="umuririmbyi">Umuririmbyi</option>
+        <option value="komite">Umunyamuryango wa Komite</option>
+      </select>
+      <button id="addBtn" class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800">Ongeramo</button>
+    </section>
 
-  <footer class="bg-green-700 text-white text-center py-4">
-    <p>&copy; 2025 Chorale Bonheur. Uburenganzira bwose burabitswe.</p>
-  </footer>
+    <section>
+      <h2 class="text-xl font-semibold mb-4">📝 Urutonde rw’Abantu Bose</h2>
+      <div id="membersList" class="space-y-4"></div>
+    </section>
+  </main>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getFirestore, collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
@@ -33,37 +41,65 @@
       projectId: "chorale-bonheur",
       storageBucket: "chorale-bonheur.firebasestorage.app",
       messagingSenderId: "842542859541",
-      appId: "1:842542859541:web:7e93c4abba32204461d51c",
-      measurementId: "G-6LMY3CF4XP"
+      appId: "1:842542859541:web:7e93c4abba32204461d51c"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    async function loadMembers() {
-      const container = document.getElementById("memberList");
-      container.innerHTML = "<p>Loading...</p>";
-      try {
-        const q = query(collection(db, "members"), orderBy("name"));
-        const snapshot = await getDocs(q);
-        container.innerHTML = "";
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const div = document.createElement("div");
-          div.className = "bg-white border p-4 rounded shadow";
-          div.innerHTML = `
-            <h3 class="text-lg font-semibold">${data.name}</h3>
-            <p class="text-sm text-gray-700">${data.part} | ${data.status}</p>
-          `;
-          container.appendChild(div);
-        });
-        if (snapshot.empty) {
-          container.innerHTML = "<p class='text-gray-600'>Nta baririmbyi babonetse ubu.</p>";
-        }
-      } catch (err) {
-        console.error("Failed to load members:", err);
-        container.innerHTML = "<p class='text-red-600'>Habaye ikibazo mu gusoma abaririmbyi.</p>";
+    // 🔐 Admin Role Check
+    const role = localStorage.getItem("adminRole");
+    if (!role || (role !== "admin_members" && role !== "admin_control")) {
+      alert("Ntago wemerewe kubona iyi page.");
+      window.location.href = "/login.html";
+    }
+
+    document.getElementById("addBtn").addEventListener("click", async () => {
+      const name = document.getElementById("nameInput").value.trim();
+      const type = document.getElementById("typeSelect").value;
+      if (!name || !type) {
+        alert("Uzuza amazina n’icyiciro.");
+        return;
       }
+
+      await addDoc(collection(db, "members"), {
+        name,
+        type,
+        timestamp: serverTimestamp()
+      });
+
+      document.getElementById("nameInput").value = "";
+      document.getElementById("typeSelect").value = "";
+      loadMembers();
+    });
+
+    async function loadMembers() {
+      const container = document.getElementById("membersList");
+      container.innerHTML = "";
+      const snapshot = await getDocs(collection(db, "members"));
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const div = document.createElement("div");
+        div.className = "bg-white p-4 rounded shadow flex justify-between items-center";
+        div.innerHTML = `
+          <div>
+            <p class="font-semibold">${data.name}</p>
+            <p class="text-sm text-gray-500">${data.type}</p>
+          </div>
+          <button class="deleteBtn text-red-600 hover:underline text-sm" data-id="${docSnap.id}">Siba</button>
+        `;
+        container.appendChild(div);
+      });
+
+      document.querySelectorAll(".deleteBtn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          if (confirm("Urashaka gusiba uyu muntu?")) {
+            await deleteDoc(doc(db, "members", id));
+            loadMembers();
+          }
+        });
+      });
     }
 
     loadMembers();
