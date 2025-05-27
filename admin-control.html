@@ -65,13 +65,17 @@
         const id = docSnap.id;
 
         const div = document.createElement("div");
-        div.className = "bg-white p-4 rounded shadow flex justify-between items-center";
+        div.className = "bg-white p-4 rounded shadow space-y-2";
         div.innerHTML = `
           <div>
-            <p class="font-semibold">${data.username}</p>
-            <p class="text-sm text-gray-500">${data.role}</p>
+            <label class="block text-sm font-semibold">Izina</label>
+            <input type="text" value="${data.username}" class="usernameInput border p-1 rounded w-full mb-1" data-id="${id}" />
           </div>
-          <div class="space-x-2">
+          <div>
+            <label class="block text-sm font-semibold">Ijambo ry'ibanga</label>
+            <input type="text" value="${data.password}" class="passwordInput border p-1 rounded w-full mb-1" data-id="${id}" />
+          </div>
+          <div class="flex items-center gap-2">
             <select class="roleSelect border p-1 rounded" data-id="${id}">
               <option value="">Hindura uruhare</option>
               <option value="admin_messages">admin_messages</option>
@@ -80,6 +84,7 @@
               <option value="admin_members">admin_members</option>
               <option value="admin_control">admin_control</option>
             </select>
+            <button class="updateBtn bg-blue-600 text-white px-2 py-1 rounded text-sm" data-id="${id}">Bika</button>
             <button class="deleteBtn text-red-600 hover:underline text-sm" data-id="${id}">Siba</button>
           </div>
         `;
@@ -96,15 +101,19 @@
         });
       });
 
-      document.querySelectorAll(".roleSelect").forEach(select => {
-        select.addEventListener("change", async () => {
-          const newRole = select.value;
-          const id = select.getAttribute("data-id");
-          if (newRole) {
-            await updateDoc(doc(db, "admins", id), { role: newRole });
-            alert("Uruhare ruhinduwe!");
-            loadAdmins();
+      document.querySelectorAll(".updateBtn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          const username = document.querySelector(`.usernameInput[data-id='${id}']`).value;
+          const password = document.querySelector(`.passwordInput[data-id='${id}']`).value;
+          const role = document.querySelector(`.roleSelect[data-id='${id}']`).value;
+          if (!username || !password || !role) {
+            alert("Uzuza neza izina, ijambo ry'ibanga n'uruhare.");
+            return;
           }
+          await updateDoc(doc(db, "admins", id), { username, password, role });
+          alert("Byavuguruwe!");
+          loadAdmins();
         });
       });
     }
