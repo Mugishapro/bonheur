@@ -1,51 +1,42 @@
 <!DOCTYPE html>
 <html lang="rw">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard - Chorale Bonheur</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gucunga Abayobozi - Chorale Bonheur</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans">
-  <header class="bg-green-700 text-white p-4">
-    <div class="container mx-auto flex justify-between items-center">
-      <h1 class="text-xl font-bold">Dashboard y’Abayobozi</h1>
-      <button id="logoutBtn" class="text-sm underline hover:text-gray-200">Sohoka</button>
-    </div>
+  <header class="bg-green-700 text-white p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">👑 Gucunga Abayobozi</h1>
+    <a href="/admin-dashboard.html" class="underline text-sm hover:text-gray-200">⬅️ Subira kuri Dashboard</a>
   </header>
 
   <main class="max-w-4xl mx-auto p-6 space-y-6">
-    <div id="adminRoleSection" class="text-center text-xl font-semibold text-gray-700">Uruhare rwawe: <span id="adminRoleLabel">...</span></div>
+    <section>
+      <h2 class="text-lg font-semibold mb-2">➕ Ongeramo Admin Mushya</h2>
+      <input id="newUsername" type="text" placeholder="Izina rya admin" class="border p-2 rounded w-full mb-2" />
+      <input id="newPassword" type="text" placeholder="Ijambo ry’ibanga" class="border p-2 rounded w-full mb-2" />
+      <select id="newRole" class="border p-2 rounded w-full mb-2">
+        <option value="">-- Hitamo uruhare --</option>
+        <option value="admin_messages">admin_messages</option>
+        <option value="admin_songs">admin_songs</option>
+        <option value="admin_announcements">admin_announcements</option>
+        <option value="admin_members">admin_members</option>
+        <option value="admin_control">admin_control</option>
+      </select>
+      <button id="createAdmin" class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800">Ongeramo Admin</button>
+    </section>
 
-    <div id="songsPanel" class="hidden bg-white p-4 rounded shadow">
-      <h2 class="text-2xl font-bold mb-2">🎵 Gucunga Indirimbo</h2>
-      <a href="/admin-songs.html" class="text-blue-600 underline">Injira muri Panel y’Indirimbo</a>
-    </div>
-
-    <div id="messagesPanel" class="hidden bg-white p-4 rounded shadow">
-      <h2 class="text-2xl font-bold mb-2">📩 Gusubiza Ubutumwa</h2>
-      <a href="/admin-messages.html" class="text-blue-600 underline">Fungura Messages Panel</a>
-    </div>
-
-    <div id="announcementsPanel" class="hidden bg-white p-4 rounded shadow">
-      <h2 class="text-2xl font-bold mb-2">📢 Gucunga Amatangazo</h2>
-      <a href="/admin-announcements.html" class="text-blue-600 underline">Jya muri Announcements</a>
-    </div>
-
-    <div id="membersPanel" class="hidden bg-white p-4 rounded shadow">
-      <h2 class="text-2xl font-bold mb-2">👥 Gucunga Abaririmbyi & Komite</h2>
-      <a href="/admin-members.html" class="text-blue-600 underline">Injira muri Members & Committee</a>
-    </div>
-
-    <div id="superAdminPanel" class="hidden bg-white p-4 rounded shadow">
-      <h2 class="text-2xl font-bold mb-2">👑 Kugenzura Abayobozi</h2>
-      <a href="/admin-control.html" class="text-blue-600 underline">Jya muri Control Panel</a>
-    </div>
+    <section>
+      <h2 class="text-lg font-semibold mb-4">🗂 Urutonde rw’Abayobozi</h2>
+      <div id="adminList" class="space-y-4"></div>
+    </section>
   </main>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
@@ -53,44 +44,95 @@
       projectId: "chorale-bonheur",
       storageBucket: "chorale-bonheur.firebasestorage.app",
       messagingSenderId: "842542859541",
-      appId: "1:842542859541:web:7e93c4abba32204461d51c",
-      measurementId: "G-6LMY3CF4XP"
+      appId: "1:842542859541:web:7e93c4abba32204461d51c"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const adminEmail = localStorage.getItem("adminEmail");
-    if (!adminEmail || typeof adminEmail !== 'string') {
-      alert("Ntago wemerewe kubona iyi page. Injira ubundi.");
+    const role = localStorage.getItem("adminRole");
+    if (role !== "admin_control") {
+      alert("Ubu ntago wemerewe kugera aha.");
       window.location.href = "/login.html";
     }
 
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("adminEmail");
-      window.location.href = "/login.html";
-    });
+    async function loadAdmins() {
+      const container = document.getElementById("adminList");
+      container.innerHTML = "";
+      const snapshot = await getDocs(collection(db, "admins"));
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const id = docSnap.id;
 
-    async function loadAdminRole() {
-      const adminRef = doc(db, "admins", adminEmail);
-      const adminSnap = await getDoc(adminRef);
-      if (!adminSnap.exists()) {
-        alert("Nta ruhare wemerewe.");
-        localStorage.removeItem("adminEmail");
-        window.location.href = "/login.html";
+        const div = document.createElement("div");
+        div.className = "bg-white p-4 rounded shadow flex justify-between items-center";
+        div.innerHTML = `
+          <div>
+            <p class="font-semibold">${data.username}</p>
+            <p class="text-sm text-gray-500">${data.role}</p>
+          </div>
+          <div class="space-x-2">
+            <select class="roleSelect border p-1 rounded" data-id="${id}">
+              <option value="">Hindura uruhare</option>
+              <option value="admin_messages">admin_messages</option>
+              <option value="admin_songs">admin_songs</option>
+              <option value="admin_announcements">admin_announcements</option>
+              <option value="admin_members">admin_members</option>
+              <option value="admin_control">admin_control</option>
+            </select>
+            <button class="deleteBtn text-red-600 hover:underline text-sm" data-id="${id}">Siba</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      document.querySelectorAll(".deleteBtn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.getAttribute("data-id");
+          if (confirm("Wemeje gusiba uyu muyobozi?")) {
+            await deleteDoc(doc(db, "admins", id));
+            loadAdmins();
+          }
+        });
+      });
+
+      document.querySelectorAll(".roleSelect").forEach(select => {
+        select.addEventListener("change", async () => {
+          const newRole = select.value;
+          const id = select.getAttribute("data-id");
+          if (newRole) {
+            await updateDoc(doc(db, "admins", id), { role: newRole });
+            alert("Uruhare ruhinduwe!");
+            loadAdmins();
+          }
+        });
+      });
+    }
+
+    document.getElementById("createAdmin").addEventListener("click", async () => {
+      const username = document.getElementById("newUsername").value.trim();
+      const password = document.getElementById("newPassword").value.trim();
+      const role = document.getElementById("newRole").value;
+
+      if (!username || !password || !role) {
+        alert("Uzuza byose mbere yo kohereza.");
         return;
       }
-      const data = adminSnap.data();
-      const roles = Object.keys(data).filter(r => data[r]);
-      document.getElementById("adminRoleLabel").textContent = roles.length > 0 ? (data.superAdmin ? "Super Admin" : roles.join(", ")) : "Nta nshingano zigaragara";
-      if (data.songsAdmin) document.getElementById("songsPanel").classList.remove("hidden");
-      if (data.messagesAdmin) document.getElementById("messagesPanel").classList.remove("hidden");
-      if (data.announcementsAdmin) document.getElementById("announcementsPanel").classList.remove("hidden");
-      if (data.membersAdmin) document.getElementById("membersPanel").classList.remove("hidden");
-      if (data.superAdmin) document.getElementById("superAdminPanel").classList.remove("hidden");
-    }
 
-    loadAdminRole();
+      await addDoc(collection(db, "admins"), {
+        username,
+        password,
+        role
+      });
+
+      document.getElementById("newUsername").value = "";
+      document.getElementById("newPassword").value = "";
+      document.getElementById("newRole").value = "";
+
+      loadAdmins();
+    });
+
+    loadAdmins();
   </script>
 </body>
 </html>
