@@ -1,16 +1,13 @@
 {
-  "version": 2,
-  "name": "chorale-bonheur",
-  "builds": [
+  "cleanUrls": true,
+  "rewrites": [
     {
-      "src": "bonheur.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
+      "source": "/",
+      "destination": "/index.html"
+    },
     {
-      "src": "/(.*)",
-      "dest": "/bonheur.html"
+      "source": "/admin",
+      "destination": "/admin.html"
     }
   ]
 }
