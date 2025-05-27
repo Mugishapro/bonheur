@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="rw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gusubiza Ubutumwa - Chorale Bonheur</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+  <header class="bg-green-700 text-white p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">📩 Gusubiza Ubutumwa</h1>
+      <a href="/admin-dashboard.html" class="text-sm underline hover:text-gray-200">⬅️ Subira kuri Dashboard</a>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto p-6">
+    <div id="messages" class="space-y-6"></div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, collection, getDocs, updateDoc, doc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
+      authDomain: "chorale-bonheur.firebaseapp.com",
+      projectId: "chorale-bonheur",
+      storageBucket: "chorale-bonheur.firebasestorage.app",
+      messagingSenderId: "842542859541",
+      appId: "1:842542859541:web:7e93c4abba32204461d51c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const email = localStorage.getItem("adminEmail");
+    if (!email) window.location.href = "/login.html";
+
+    async function checkPermission() {
+      const admins = await getDocs(collection(db, "admins"));
+      const admin = admins.docs.find(d => d.id === email);
+      if (!admin || !admin.data().messagesAdmin) window.location.href = "/admin-dashboard.html";
+    }
+
+    async function loadMessages() {
+      const container = document.getElementById("messages");
+      container.innerHTML = "<p>Loading...</p>";
+      const q = query(collection(db, "messages"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+      container.innerHTML = "";
+
+      snapshot.forEach(docSnap => {
+        const msg = docSnap.data();
+        const msgId = docSnap.id;
+        const reply = msg.reply || "";
+        const time = msg.timestamp?.toDate().toLocaleString() || 'Igihe kitazwi';
+        const div = document.createElement("div");
+        div.className = "bg-white border rounded shadow p-4";
+        div.innerHTML = `
+          <p class="text-lg">📩 ${msg.text}</p>
+          <p class="text-sm text-gray-500">⏰ ${time}</p>
+          <textarea class="reply p-2 border w-full rounded mt-2" placeholder="Andika igisubizo...">${reply}</textarea>
+          <button class="save-reply mt-2 bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700" data-id="${msgId}">Bika igisubizo</button>
+        `;
+        container.appendChild(div);
+      });
+
+      document.querySelectorAll('.save-reply').forEach(button => {
+        button.addEventListener('click', async () => {
+          const msgId = button.getAttribute('data-id');
+          const replyText = button.previousElementSibling.value.trim();
+          if (!replyText) return alert("Andika igisubizo mbere yo kubika.");
+          try {
+            await updateDoc(doc(db, "messages", msgId), { reply: replyText });
+            alert("Igisubizo cyakiriwe neza.");
+          } catch (e) {
+            alert("Habaye ikibazo kubika igisubizo.");
+            console.error(e);
+          }
+        });
+      });
+    }
+
+    await checkPermission();
+    await loadMessages();
+  </script>
+</body>
+</html>
