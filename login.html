@@ -9,24 +9,39 @@
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
   <div class="bg-white p-8 rounded shadow-md w-full max-w-sm">
     <h1 class="text-2xl font-bold text-center mb-4">Injira nka Admin</h1>
-    <p class="text-sm text-gray-600 text-center mb-6">Shyiramo email yawe gusa kugirango winjire</p>
+    <p class="text-sm text-gray-600 text-center mb-6">Shyiramo ijambo ry'ibanga ry'umwanya wawe</p>
 
-    <input type="email" id="adminEmail" placeholder="Email ya admin" class="border p-2 w-full mb-4 rounded">
+    <input type="password" id="adminPassword" placeholder="Ijambo ry'ibanga" class="border p-2 w-full mb-4 rounded">
     <button id="loginBtn" class="bg-green-700 text-white px-4 py-2 w-full rounded hover:bg-green-800">Injira</button>
     <p id="statusMessage" class="text-center text-sm text-red-600 mt-4"></p>
   </div>
 
   <script>
+    const passwords = {
+      "admin_messages": "bon-msg2025",
+      "admin_songs": "bon-song2025",
+      "admin_announcements": "bon-ann2025",
+      "admin_members": "bon-mem2025",
+      "admin_control": "bon-ctrl2025"
+    };
+
     document.getElementById("loginBtn").addEventListener("click", () => {
-      const email = document.getElementById("adminEmail").value.trim();
-      if (!email || !email.includes("@")) {
-        document.getElementById("statusMessage").textContent = "Shyiramo email yemewe.";
-        return;
+      const password = document.getElementById("adminPassword").value.trim();
+      let matchedRole = null;
+
+      for (const [role, pass] of Object.entries(passwords)) {
+        if (password === pass) {
+          matchedRole = role;
+          break;
+        }
       }
-      // Bika mu local storage
-      localStorage.setItem("adminEmail", email);
-      // Ohereza kuri dashboard
-      window.location.href = "/admin-dashboard.html";
+
+      if (matchedRole) {
+        localStorage.setItem("adminRole", matchedRole);
+        window.location.href = "/admin-dashboard.html";
+      } else {
+        document.getElementById("statusMessage").textContent = "Ijambo ry'ibanga si ryo.";
+      }
     });
   </script>
 </body>
