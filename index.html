@@ -94,10 +94,12 @@
             repliesContainer.innerHTML = "<p class='text-gray-500 dark:text-gray-400'>Nta bisubizo byatanzwe na admin.</p>";
           }
           querySnapshot.forEach((doc) => {
-            const div = document.createElement("div");
-            div.className = "p-4 bg-gray-100 dark:bg-darkCard rounded shadow";
-            div.textContent = doc.data().reply;
-            repliesContainer.appendChild(div);
+            const data = doc.data();
+            const replyDiv = document.createElement("div");
+            const date = data.timestamp?.toDate().toLocaleString() || "";
+            replyDiv.className = "p-4 bg-gray-100 dark:bg-darkCard rounded shadow";
+            replyDiv.innerHTML = `<p>${data.reply}</p><p class="text-xs text-gray-500 mt-1">${date}</p>`;
+            repliesContainer.appendChild(replyDiv);
           });
         } catch (err) {
           repliesContainer.innerHTML = "<p class='text-red-500'>Ntibyakunze kugaragaza ibisubizo.</p>";
@@ -111,19 +113,21 @@
   <link rel="icon" href="/favicon.ico" />
 </head>
 <body class="bg-white dark:bg-darkBg text-gray-800 dark:text-gray-200 font-sans transition-all duration-500">
+
   <header class="bg-green-700 dark:bg-green-800 text-white p-6 shadow-md">
-    <div class="container mx-auto flex justify-between items-center">
+    <div class="container mx-auto flex justify-between items-center relative">
       <h1 class="text-2xl font-bold">Chorale Bonheur</h1>
-      <nav class="space-x-4 text-sm hidden md:flex">
-        <a href="#home" class="px-3 py-1 rounded bg-white text-green-700 hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Ahabanza</a>
-        <a href="#songs" class="px-3 py-1 rounded bg-white text-green-700 hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Indirimbo</a>
-        <a href="/announcements.html" class="px-3 py-1 rounded bg-white text-green-700 hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Amatangazo</a>
-        <a href="/members.html" class="px-3 py-1 rounded bg-white text-green-700 hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Abaririmbyi</a>
-        <a href="/committee.html" class="px-3 py-1 rounded bg-white text-green-700 hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Komite</a>
-        <a href="#chatbot" class="px-3 py-1 rounded bg-white text-green-700 hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Twandikire</a>
-        <a href="/login.html" class="px-3 py-1 rounded bg-white text-green-700 hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">Admin Panel</a>
-        <a href="https://www.youtube.com/@choralebonheur_ADEPR_RUNDA" target="_blank" class="px-3 py-1 rounded bg-white text-green-700 hover:bg-green-100 dark:bg-darkCard dark:text-white dark:hover:bg-green-800">YouTube</a>
-        <button id="toggleTheme" class="bg-white dark:bg-darkCard text-green-700 dark:text-white px-2 py-1 rounded border dark:border-gray-600">🌓</button>
+      <button id="menuToggle" class="md:hidden text-white text-3xl focus:outline-none">☰</button>
+      <nav id="mobileMenu" class="hidden md:flex flex-col md:flex-row absolute md:static top-20 left-0 w-full md:w-auto bg-green-700 md:bg-transparent p-4 md:p-0 space-y-2 md:space-y-0 md:space-x-4 z-50">
+        <a href="#home" class="px-3 py-1 rounded hover:bg-green-600">Ahabanza</a>
+        <a href="#songs" class="px-3 py-1 rounded hover:bg-green-600">Indirimbo</a>
+        <a href="/announcements.html" class="px-3 py-1 rounded hover:bg-green-600">Amatangazo</a>
+        <a href="/members.html" class="px-3 py-1 rounded hover:bg-green-600">Abaririmbyi</a>
+        <a href="/committee.html" class="px-3 py-1 rounded hover:bg-green-600">Komite</a>
+        <a href="#chatbot" class="px-3 py-1 rounded hover:bg-green-600">Twandikire</a>
+        <a href="/login.html" class="px-3 py-1 rounded hover:bg-green-600">Admin Panel</a>
+        <a href="https://www.youtube.com/@choralebonheur_ADEPR_RUNDA" target="_blank" class="px-3 py-1 rounded hover:bg-green-600">YouTube</a>
+        <button id="toggleTheme" class="px-2 py-1 rounded border border-white">🌓</button>
       </nav>
     </div>
   </header>
@@ -169,10 +173,17 @@
   </footer>
 
   <script>
-    // Toggle dark mode button
+    // Toggle dark mode
     const toggleThemeBtn = document.getElementById('toggleTheme');
     toggleThemeBtn.addEventListener('click', () => {
       document.documentElement.classList.toggle('dark');
+    });
+
+    // Toggle mobile menu
+    const menuToggle = document.getElementById('menuToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    menuToggle.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
     });
   </script>
 </body>
