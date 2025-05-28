@@ -58,15 +58,16 @@
     async function loadSongs() {
       const songList = document.getElementById("songList");
       songList.innerHTML = "";
-      allSongs = [];
       const snapshot = await getDocs(collection(db, "songs"));
+      allSongs = [];
       snapshot.forEach(docSnap => {
-        allSongs.push({ id: docSnap.id, ...docSnap.data() });
+        const song = { id: docSnap.id, ...docSnap.data() };
+        allSongs.push(song);
       });
-      renderSongs(allSongs);
+      displaySongs(allSongs);
     }
 
-    function renderSongs(songs) {
+    function displaySongs(songs) {
       const songList = document.getElementById("songList");
       songList.innerHTML = "";
       songs.forEach(song => {
@@ -112,16 +113,6 @@
       });
     }
 
-    document.getElementById("searchInput").addEventListener("input", e => {
-      const query = e.target.value.toLowerCase();
-      const filtered = allSongs.filter(song =>
-        song.title.toLowerCase().includes(query) ||
-        song.category.toLowerCase().includes(query) ||
-        song.lyrics.toLowerCase().includes(query)
-      );
-      renderSongs(filtered);
-    });
-
     document.getElementById("addBtn").addEventListener("click", async () => {
       const title = document.getElementById("title").value.trim();
       const category = document.getElementById("category").value.trim();
@@ -161,6 +152,16 @@
       currentEditId = null;
 
       loadSongs();
+    });
+
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      const term = e.target.value.toLowerCase();
+      const filtered = allSongs.filter(song =>
+        song.title.toLowerCase().includes(term) ||
+        song.category.toLowerCase().includes(term) ||
+        song.lyrics.toLowerCase().includes(term)
+      );
+      displaySongs(filtered);
     });
 
     loadSongs();
