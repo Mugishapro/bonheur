@@ -24,6 +24,7 @@
 
     <section>
       <h2 class="text-xl font-semibold mb-4">📃 Urutonde rw’indirimbo</h2>
+      <input id="searchInput" type="text" placeholder="Shakisha indirimbo..." class="border p-2 rounded w-full mb-4" />
       <div id="songList" class="space-y-4"></div>
     </section>
   </main>
@@ -52,13 +53,23 @@
 
     let isEditing = false;
     let currentEditId = null;
+    let allSongs = [];
 
     async function loadSongs() {
       const songList = document.getElementById("songList");
       songList.innerHTML = "";
+      allSongs = [];
       const snapshot = await getDocs(collection(db, "songs"));
       snapshot.forEach(docSnap => {
-        const song = docSnap.data();
+        allSongs.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      renderSongs(allSongs);
+    }
+
+    function renderSongs(songs) {
+      const songList = document.getElementById("songList");
+      songList.innerHTML = "";
+      songs.forEach(song => {
         const div = document.createElement("div");
         div.className = "bg-white p-4 rounded shadow";
         div.innerHTML = `
@@ -66,8 +77,8 @@
           <p class="text-sm text-gray-600 mb-1">Icyiciro: ${song.category}</p>
           <pre class="whitespace-pre-wrap text-sm mb-1">${song.lyrics}</pre>
           ${song.youtubeUrl ? `<p class='mb-1'><a class='text-blue-600 underline text-sm' href='${song.youtubeUrl}' target='_blank'>▶️ Reba kuri YouTube</a></p>` : ""}
-          <button class="editBtn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded mr-2" data-id="${docSnap.id}">Hindura</button>
-          <button class="deleteBtn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded" data-id="${docSnap.id}">Siba</button>
+          <button class="editBtn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded mr-2" data-id="${song.id}">Hindura</button>
+          <button class="deleteBtn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded" data-id="${song.id}">Siba</button>
         `;
         songList.appendChild(div);
       });
@@ -100,6 +111,16 @@
         });
       });
     }
+
+    document.getElementById("searchInput").addEventListener("input", e => {
+      const query = e.target.value.toLowerCase();
+      const filtered = allSongs.filter(song =>
+        song.title.toLowerCase().includes(query) ||
+        song.category.toLowerCase().includes(query) ||
+        song.lyrics.toLowerCase().includes(query)
+      );
+      renderSongs(filtered);
+    });
 
     document.getElementById("addBtn").addEventListener("click", async () => {
       const title = document.getElementById("title").value.trim();
