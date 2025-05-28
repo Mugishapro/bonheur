@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="rw" class="transition-colors duration-300">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chorale Bonheur</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -12,11 +12,15 @@
         extend: {
           colors: {
             darkBg: '#0f172a',
-            darkCard: '#1e293b'
+            darkCard: '#1e293b',
+            brand: '#14b8a6',
+            brandLight: '#5eead4',
+            brandDark: '#0f766e'
           },
           animation: {
             fade: 'fadeIn 1s ease-out forwards',
-            'fade-up': 'fadeInUp 0.8s ease-out forwards'
+            'fade-up': 'fadeInUp 0.8s ease-out forwards',
+            glow: 'glow 2s infinite ease-in-out'
           },
           keyframes: {
             fadeIn: {
@@ -26,11 +30,83 @@
             fadeInUp: {
               '0%': { opacity: '0', transform: 'translateY(10px)' },
               '100%': { opacity: '1', transform: 'translateY(0)' }
+            },
+            glow: {
+              '0%, 100%': { boxShadow: '0 0 10px #5eead4' },
+              '50%': { boxShadow: '0 0 20px #14b8a6' }
             }
           }
         }
       }
     }
+  </script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-analytics.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
+      authDomain: "chorale-bonheur.firebaseapp.com",
+      projectId: "chorale-bonheur",
+      storageBucket: "chorale-bonheur.firebasestorage.app",
+      messagingSenderId: "842542859541",
+      appId: "1:842542859541:web:7e93c4abba32204461d51c",
+      measurementId: "G-6LMY3CF4XP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const sendBtn = document.getElementById("sendMessageBtn");
+      const userMessageInput = document.getElementById("userMessage");
+      const messageStatus = document.getElementById("messageStatus");
+      const repliesContainer = document.getElementById("adminReplies");
+
+      sendBtn.addEventListener("click", async () => {
+        const userMessage = userMessageInput.value.trim();
+        if (!userMessage) {
+          messageStatus.textContent = "Andika ubutumwa mbere yo kohereza.";
+          return;
+        }
+        try {
+          await addDoc(collection(db, "messages"), {
+            message: userMessage,
+            timestamp: serverTimestamp()
+          });
+          messageStatus.textContent = "Ubutumwa bwoherejwe!";
+          userMessageInput.value = "";
+          fetchAdminReplies();
+        } catch (e) {
+          messageStatus.textContent = "Habaye ikosa, ongera ugerageze.";
+          console.error(e);
+        }
+      });
+
+      async function fetchAdminReplies() {
+        repliesContainer.innerHTML = "";
+        try {
+          const q = query(collection(db, "adminReplies"), orderBy("timestamp", "desc"));
+          const querySnapshot = await getDocs(q);
+          if (querySnapshot.empty) {
+            repliesContainer.innerHTML = "<p class='text-gray-500 dark:text-gray-400'>Nta bisubizo byatanzwe na admin.</p>";
+          }
+          querySnapshot.forEach((doc) => {
+            const div = document.createElement("div");
+            div.className = "p-4 bg-gray-100 dark:bg-darkCard rounded shadow";
+            div.textContent = doc.data().reply;
+            repliesContainer.appendChild(div);
+          });
+        } catch (err) {
+          repliesContainer.innerHTML = "<p class='text-red-500'>Ntibyakunze kugaragaza ibisubizo.</p>";
+          console.error(err);
+        }
+      }
+
+      fetchAdminReplies();
+    });
   </script>
   <link rel="icon" href="/favicon.ico" />
 </head>
@@ -76,11 +152,11 @@
 
   <section id="chatbot" class="py-12 px-6 text-center animate-fade-up">
     <h3 class="text-2xl font-bold mb-4">Twandikire hano</h3>
-    <p class="mb-4 text-gray-700 dark:text-gray-300">Andika ubutumwa bwawe hano hepfo, admin azabusoma agusubize:</p>
+    <p class="mb-4 text-gray-700 dark:text-gray-300">Andika ubutumwa bwawe, admin azabusoma agusubize:</p>
     <div class="max-w-xl mx-auto space-y-4">
       <textarea id="userMessage" rows="4" placeholder="Andika ubutumwa..." class="border p-3 w-full rounded dark:bg-darkCard dark:border-gray-600"></textarea>
-      <button id="sendMessageBtn" class="bg-green-700 text-white px-6 py-2 rounded hover:bg-green-800">Ohereza</button>
-      <p id="messageStatus" class="text-sm text-gray-600"></p>
+      <button id="sendMessageBtn" class="bg-brand text-white px-6 py-2 rounded hover:bg-brandDark animate-glow">Ohereza</button>
+      <p id="messageStatus" class="text-sm text-gray-600 dark:text-gray-300"></p>
     </div>
     <div class="max-w-2xl mx-auto mt-10">
       <h4 class="text-xl font-semibold mb-2">🗣 Ibisubizo byatanzwe na Admin</h4>
@@ -88,27 +164,16 @@
     </div>
   </section>
 
-  <footer class="bg-green-700 dark:bg-green-900 text-white text-center py-4 animate-fade">
-    <p>&copy; 2025 Chorale Bonheur. Uburenganzira bwose burabitswe.</p>
+  <footer class="bg-green-700 dark:bg-green-800 text-white text-center p-4 mt-20">
+    &copy; 2025 Chorale Bonheur. Uburenganzira bwose burinzwe.
   </footer>
 
-<script>
-  document.getElementById("toggleTheme").addEventListener("click", () => {
-    document.documentElement.classList.toggle("dark");
-  });
-
-  // Live counter script
-  async function fetchSongCount() {
-    try {
-      const res = await fetch("https://firestore.googleapis.com/v1/projects/chorale-bonheur/databases/(default)/documents/songs");
-      const data = await res.json();
-      const count = data.documents ? data.documents.length : 0;
-      document.getElementById("songCounter").textContent = count;
-    } catch (err) {
-      console.error("Live counter error:", err);
-    }
-  }
-  fetchSongCount();
-</script>
+  <script>
+    // Toggle dark mode button
+    const toggleThemeBtn = document.getElementById('toggleTheme');
+    toggleThemeBtn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+    });
+  </script>
 </body>
 </html>
