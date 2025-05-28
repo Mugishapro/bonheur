@@ -18,8 +18,8 @@
       <input id="title" type="text" placeholder="Izina ry’indirimbo" class="border p-2 rounded w-full mb-2" />
       <input id="category" type="text" placeholder="Icyiciro" class="border p-2 rounded w-full mb-2" />
       <textarea id="lyrics" rows="4" placeholder="Amagambo y’indirimbo..." class="border p-2 rounded w-full mb-2"></textarea>
-      <input id="audio" type="file" accept="audio/*" class="mb-2" />
-      <input id="youtube" type="url" placeholder="YouTube link (optional)" class="border p-2 rounded w-full mb-2" />
+      <input id="youtube" type="text" placeholder="YouTube URL (niba ihari)" class="border p-2 rounded w-full mb-2" />
+      <input id="audio" type="file" accept="audio/*" class="border p-2 rounded w-full mb-2" />
       <button id="addBtn" class="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded">Ongeramo</button>
     </section>
 
@@ -31,7 +31,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getFirestore, collection, getDocs, addDoc, deleteDoc, updateDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
     import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
     const firebaseConfig = {
@@ -53,6 +53,9 @@
       window.location.href = "/login.html";
     }
 
+    let isEditing = false;
+    let currentEditId = null;
+
     async function loadSongs() {
       const songList = document.getElementById("songList");
       songList.innerHTML = "";
@@ -60,17 +63,15 @@
       snapshot.forEach(docSnap => {
         const song = docSnap.data();
         const div = document.createElement("div");
-        div.className = "bg-white p-4 rounded shadow space-y-2";
+        div.className = "bg-white p-4 rounded shadow";
         div.innerHTML = `
           <h3 class="text-lg font-semibold">${song.title}</h3>
-          <p class="text-sm text-gray-600">Icyiciro: ${song.category}</p>
-          <pre class="whitespace-pre-wrap text-sm">${song.lyrics}</pre>
-          ${song.audioUrl ? `<audio controls src="${song.audioUrl}" class="w-full"></audio>` : ""}
-          ${song.youtubeUrl ? `<a href="${song.youtubeUrl}" target="_blank" class="text-blue-600 underline">▶️ Reba kuri YouTube</a>` : ""}
-          <div class="space-x-2">
-            <button class="editBtn bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded" data-id="${docSnap.id}">Hindura</button>
-            <button class="deleteBtn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded" data-id="${docSnap.id}">Siba</button>
-          </div>
+          <p class="text-sm text-gray-600 mb-1">Icyiciro: ${song.category}</p>
+          <pre class="whitespace-pre-wrap text-sm mb-1">${song.lyrics}</pre>
+          ${song.youtubeUrl ? `<p class='mb-1'><a class='text-blue-600 underline text-sm' href='${song.youtubeUrl}' target='_blank'>▶️ Reba kuri YouTube</a></p>` : ""}
+          ${song.audioUrl ? `<audio class='w-full mb-2' controls src='${song.audioUrl}'></audio>` : ""}
+          <button class="editBtn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded mr-2" data-id="${docSnap.id}">Hindura</button>
+          <button class="deleteBtn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded" data-id="${docSnap.id}">Siba</button>
         `;
         songList.appendChild(div);
       });
@@ -88,53 +89,21 @@
       document.querySelectorAll(".editBtn").forEach(btn => {
         btn.addEventListener("click", async () => {
           const id = btn.getAttribute("data-id");
-          const docRef = doc(db, "songs", id);
-          const docSnap = await getDocs(collection(db, "songs"));
-          docSnap.forEach(d => {
-            if (d.id === id) {
-              const data = d.data();
-              document.getElementById("title").value = data.title;
-              document.getElementById("category").value = data.category;
-              document.getElementById("lyrics").value = data.lyrics;
-              document.getElementById("youtube").value = data.youtubeUrl || "";
-              document.getElementById("addBtn").textContent = "Hindura";
-
-              document.getElementById("addBtn").onclick = async () => {
-                const newTitle = document.getElementById("title").value.trim();
-                const newCategory = document.getElementById("category").value.trim();
-                const newLyrics = document.getElementById("lyrics").value.trim();
-                const newYoutube = document.getElementById("youtube").value.trim();
-
-                const file = document.getElementById("audio").files[0];
-                let audioUrl = data.audioUrl;
-                if (file) {
-                  const storageRef = ref(storage, `songs-audio/${Date.now()}-${file.name}`);
-                  await uploadBytes(storageRef, file);
-                  audioUrl = await getDownloadURL(storageRef);
-                }
-
-                await updateDoc(docRef, {
-                  title: newTitle,
-                  category: newCategory,
-                  lyrics: newLyrics,
-                  audioUrl,
-                  youtubeUrl: newYoutube
-                });
-
-                document.getElementById("addBtn").textContent = "Ongeramo";
-                document.getElementById("title").value = "";
-                document.getElementById("category").value = "";
-                document.getElementById("lyrics").value = "";
-                document.getElementById("youtube").value = "";
-                loadSongs();
-              }
-            }
-          });
+          const songRef = doc(db, "songs", id);
+          const songSnap = await getDoc(songRef);
+          if (songSnap.exists()) {
+            const song = songSnap.data();
+            document.getElementById("title").value = song.title;
+            document.getElementById("category").value = song.category;
+            document.getElementById("lyrics").value = song.lyrics;
+            document.getElementById("youtube").value = song.youtubeUrl || "";
+            currentEditId = id;
+            isEditing = true;
+            document.getElementById("addBtn").textContent = "Hindura";
+          }
         });
       });
     }
-
-    loadSongs();
 
     document.getElementById("addBtn").addEventListener("click", async () => {
       const title = document.getElementById("title").value.trim();
@@ -155,22 +124,42 @@
         audioUrl = await getDownloadURL(storageRef);
       }
 
-      await addDoc(collection(db, "songs"), {
-        title,
-        category,
-        lyrics,
-        youtubeUrl: youtube,
-        audioUrl,
-        createdAt: serverTimestamp()
-      });
+      if (isEditing && currentEditId) {
+        const docRef = doc(db, "songs", currentEditId);
+        const currentDoc = await getDoc(docRef);
+        const oldAudio = currentDoc.exists() ? currentDoc.data().audioUrl : "";
+        await updateDoc(docRef, {
+          title,
+          category,
+          lyrics,
+          youtubeUrl: youtube,
+          audioUrl: file ? audioUrl : oldAudio
+        });
+      } else {
+        await addDoc(collection(db, "songs"), {
+          title,
+          category,
+          lyrics,
+          youtubeUrl: youtube,
+          audioUrl,
+          createdAt: serverTimestamp()
+        });
+      }
 
       document.getElementById("title").value = "";
       document.getElementById("category").value = "";
       document.getElementById("lyrics").value = "";
       document.getElementById("youtube").value = "";
       document.getElementById("audio").value = "";
+      document.getElementById("addBtn").textContent = "Ongeramo";
+
+      isEditing = false;
+      currentEditId = null;
+
       loadSongs();
     });
+
+    loadSongs();
   </script>
 </body>
 </html>
