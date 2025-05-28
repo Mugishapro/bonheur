@@ -19,7 +19,6 @@
       <input id="category" type="text" placeholder="Icyiciro" class="border p-2 rounded w-full mb-2" />
       <textarea id="lyrics" rows="4" placeholder="Amagambo y’indirimbo..." class="border p-2 rounded w-full mb-2"></textarea>
       <input id="youtube" type="text" placeholder="YouTube URL (niba ihari)" class="border p-2 rounded w-full mb-2" />
-      <input id="audio" type="file" accept="audio/*" class="border p-2 rounded w-full mb-2" />
       <button id="addBtn" class="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded">Ongeramo</button>
     </section>
 
@@ -32,7 +31,6 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
     import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc, getDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
@@ -45,7 +43,6 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const storage = getStorage(app);
 
     const role = localStorage.getItem("adminRole");
     if (!role || (role !== "admin_songs" && role !== "admin_control")) {
@@ -69,7 +66,6 @@
           <p class="text-sm text-gray-600 mb-1">Icyiciro: ${song.category}</p>
           <pre class="whitespace-pre-wrap text-sm mb-1">${song.lyrics}</pre>
           ${song.youtubeUrl ? `<p class='mb-1'><a class='text-blue-600 underline text-sm' href='${song.youtubeUrl}' target='_blank'>▶️ Reba kuri YouTube</a></p>` : ""}
-          ${song.audioUrl ? `<audio class='w-full mb-2' controls src='${song.audioUrl}'></audio>` : ""}
           <button class="editBtn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded mr-2" data-id="${docSnap.id}">Hindura</button>
           <button class="deleteBtn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded" data-id="${docSnap.id}">Siba</button>
         `;
@@ -110,30 +106,19 @@
       const category = document.getElementById("category").value.trim();
       const lyrics = document.getElementById("lyrics").value.trim();
       const youtube = document.getElementById("youtube").value.trim();
-      const file = document.getElementById("audio").files[0];
 
       if (!title || !category || !lyrics) {
         alert("Nyamuneka zuza byose.");
         return;
       }
 
-      let audioUrl = "";
-      if (file) {
-        const storageRef = ref(storage, `songs-audio/${Date.now()}-${file.name}`);
-        await uploadBytes(storageRef, file);
-        audioUrl = await getDownloadURL(storageRef);
-      }
-
       if (isEditing && currentEditId) {
         const docRef = doc(db, "songs", currentEditId);
-        const currentDoc = await getDoc(docRef);
-        const oldAudio = currentDoc.exists() ? currentDoc.data().audioUrl : "";
         await updateDoc(docRef, {
           title,
           category,
           lyrics,
-          youtubeUrl: youtube,
-          audioUrl: file ? audioUrl : oldAudio
+          youtubeUrl: youtube
         });
       } else {
         await addDoc(collection(db, "songs"), {
@@ -141,7 +126,6 @@
           category,
           lyrics,
           youtubeUrl: youtube,
-          audioUrl,
           createdAt: serverTimestamp()
         });
       }
@@ -150,7 +134,6 @@
       document.getElementById("category").value = "";
       document.getElementById("lyrics").value = "";
       document.getElementById("youtube").value = "";
-      document.getElementById("audio").value = "";
       document.getElementById("addBtn").textContent = "Ongeramo";
 
       isEditing = false;
