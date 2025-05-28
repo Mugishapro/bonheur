@@ -15,7 +15,8 @@
             darkCard: '#1e293b',
             brand: '#14b8a6',
             brandLight: '#5eead4',
-            brandDark: '#0f766e'
+            brandDark: '#0f766e',
+            lightBg: '#f7fdf9'
           },
           animation: {
             fade: 'fadeIn 1s ease-out forwards',
@@ -40,163 +41,172 @@
       }
     }
   </script>
+</head>
+<body class="bg-lightBg text-gray-900 dark:bg-darkBg dark:text-white font-sans">
+  <header class="bg-green-700 dark:bg-darkCard text-white p-4 sticky top-0 z-50 shadow">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">🎵 Chorale Bonheur</h1>
+      <nav class="hidden md:flex space-x-4 items-center">
+        <a href="#home" class="hover:underline">Ahabanza</a>
+        <a href="#songs" class="hover:underline">Indirimbo</a>
+        <a href="/announcements.html" class="hover:underline">Amatangazo</a>
+        <a href="/members.html" class="hover:underline">Abaririmbyi</a>
+        <a href="/committee.html" class="hover:underline">Komite</a>
+        <a href="#chatbot" class="hover:underline">Twandikire</a>
+        <a href="/login.html" class="hover:underline">Admin</a>
+        <a href="https://www.youtube.com/@choralebonheur_ADEPR_RUNDA" target="_blank" class="hover:underline">YouTube</a>
+        <button id="toggleTheme" class="border border-white px-2 py-1 rounded">🌓</button>
+      </nav>
+      <button id="menuToggle" class="md:hidden focus:outline-none">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+    <div id="mobileMenu" class="md:hidden hidden flex-col mt-4 space-y-2">
+      <a href="#home" class="block px-4 py-2 hover:bg-green-600 rounded">Ahabanza</a>
+      <a href="#songs" class="block px-4 py-2 hover:bg-green-600 rounded">Indirimbo</a>
+      <a href="/announcements.html" class="block px-4 py-2 hover:bg-green-600 rounded">Amatangazo</a>
+      <a href="/members.html" class="block px-4 py-2 hover:bg-green-600 rounded">Abaririmbyi</a>
+      <a href="/committee.html" class="block px-4 py-2 hover:bg-green-600 rounded">Komite</a>
+      <a href="#chatbot" class="block px-4 py-2 hover:bg-green-600 rounded">Twandikire</a>
+      <a href="/login.html" class="block px-4 py-2 hover:bg-green-600 rounded">Admin</a>
+      <a href="https://www.youtube.com/@choralebonheur_ADEPR_RUNDA" target="_blank" class="block px-4 py-2 hover:bg-green-600 rounded">YouTube</a>
+      <button id="toggleThemeMobile" class="block w-full border border-white px-4 py-2 rounded">🌓</button>
+    </div>
+  </header>
+  <main class="p-6">
+    <h2 class="text-xl font-semibold mb-4">Ikaze kuri Chorale Bonheur</h2>
+    <p class="mb-2">Uru ni urubuga rwacu rushya. Tuzagenda twongeramo ibikorwa, indirimbo, n'amakuru mashya.</p>
+    <p class="text-sm text-gray-600">Reba niba TailwindCSS ikora neza kuri iyi page.</p>
+
+    <section id="indirimbo" class="mt-10">
+      <h3 class="text-2xl font-bold mb-4">🎶 Urutonde rw'indirimbo</h3>
+      <div id="songList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+    </section>
+
+    <section id="chatbot" class="mt-10">
+      <h3 class="text-2xl font-bold mb-4">🤖 Tuganire</h3>
+      <div id="chatWindow" class="bg-white dark:bg-darkCard p-4 rounded shadow max-w-2xl mx-auto h-96 overflow-y-auto mb-4"></div>
+      <div class="max-w-2xl mx-auto flex gap-2">
+        <input id="userInput" type="text" placeholder="Andika hano..." class="flex-1 px-4 py-2 border rounded" />
+        <button id="sendBtn" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Ohereza</button>
+      </div>
+    </section>
+  </main>
+  <footer class="bg-green-700 text-white text-center p-4 mt-10">
+    &copy; 2025 Chorale Bonheur. Uburenganzira bwose burinzwe.
+  </footer>
+
+  <div id="songModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-darkCard p-6 rounded max-w-xl w-full">
+      <h4 id="modalTitle" class="text-xl font-bold mb-4"></h4>
+      <pre id="modalLyrics" class="whitespace-pre-wrap text-sm"></pre>
+      <button id="closeModal" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Funga</button>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-analytics.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
       authDomain: "chorale-bonheur.firebaseapp.com",
       projectId: "chorale-bonheur",
-      storageBucket: "chorale-bonheur.firebasestorage.app",
+      storageBucket: "chorale-bonheur.appspot.com",
       messagingSenderId: "842542859541",
       appId: "1:842542859541:web:7e93c4abba32204461d51c",
       measurementId: "G-6LMY3CF4XP"
     };
 
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
     const db = getFirestore(app);
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const sendBtn = document.getElementById("sendMessageBtn");
-      const userMessageInput = document.getElementById("userMessage");
-      const messageStatus = document.getElementById("messageStatus");
-      const repliesContainer = document.getElementById("adminReplies");
+    document.addEventListener("DOMContentLoaded", async () => {
+      const songList = document.getElementById("songList");
+      const modal = document.getElementById("songModal");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalLyrics = document.getElementById("modalLyrics");
+      const closeModal = document.getElementById("closeModal");
+      const chatWindow = document.getElementById("chatWindow");
+      const userInput = document.getElementById("userInput");
+      const sendBtn = document.getElementById("sendBtn");
 
-      sendBtn.addEventListener("click", async () => {
-        const userMessage = userMessageInput.value.trim();
-        if (!userMessage) {
-          messageStatus.textContent = "Andika ubutumwa mbere yo kohereza.";
-          return;
-        }
-        try {
-          await addDoc(collection(db, "messages"), {
-            message: userMessage,
-            timestamp: serverTimestamp()
-          });
-          messageStatus.textContent = "Ubutumwa bwoherejwe!";
-          userMessageInput.value = "";
-          fetchAdminReplies();
-        } catch (e) {
-          messageStatus.textContent = "Habaye ikosa, ongera ugerageze.";
-          console.error(e);
-        }
+      closeModal.addEventListener("click", () => {
+        modal.classList.add("hidden");
       });
 
-      async function fetchAdminReplies() {
-        repliesContainer.innerHTML = "";
-        try {
-          const q = query(collection(db, "adminReplies"), orderBy("timestamp", "desc"));
-          const querySnapshot = await getDocs(q);
-          if (querySnapshot.empty) {
-            repliesContainer.innerHTML = "<p class='text-gray-500 dark:text-gray-400'>Nta bisubizo byatanzwe na admin.</p>";
-          }
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const replyDiv = document.createElement("div");
-            const date = data.timestamp?.toDate().toLocaleString() || "";
-            replyDiv.className = "p-4 bg-gray-100 dark:bg-darkCard rounded shadow";
-            replyDiv.innerHTML = `<p>${data.reply}</p><p class="text-xs text-gray-500 mt-1">${date}</p>`;
-            repliesContainer.appendChild(replyDiv);
-          });
-        } catch (err) {
-          repliesContainer.innerHTML = "<p class='text-red-500'>Ntibyakunze kugaragaza ibisubizo.</p>";
-          console.error(err);
+      const botAnswers = {
+        "mwiriwe": "Mwiriwe neza! Murakaza neza kuri Chorale Bonheur.",
+        "indirimbo": "Ushaka kureba urutonde rw'indirimbo? Ruri hejuru ku rubuga.",
+        "komite": "Komite yacu iyobowe na ... (uzuzuza amazina).",
+        "murakoze": "Murakoze namwe!"
+      };
+
+      sendBtn.addEventListener("click", () => {
+        const text = userInput.value.toLowerCase().trim();
+        if (!text) return;
+
+        chatWindow.innerHTML += `<div class="mb-2"><strong>Wowe:</strong> ${text}</div>`;
+        const reply = Object.entries(botAnswers).find(([key]) => text.includes(key));
+        const botReply = reply ? reply[1] : "Ntabwo nabyumva neza. Ongera usobanure.";
+
+        chatWindow.innerHTML += `<div class="mb-2"><strong>Bot:</strong> ${botReply}</div>`;
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        userInput.value = "";
+      });
+
+      try {
+        const songsSnapshot = await getDocs(collection(db, "songs"));
+        if (songsSnapshot.empty) {
+          songList.innerHTML = '<p class="text-gray-500">Nta ndirimbo zirabikwa.</p>';
+          return;
         }
+        songsSnapshot.forEach(doc => {
+          const song = doc.data();
+          const songCard = document.createElement("div");
+          songCard.className = "p-4 bg-gray-100 dark:bg-darkCard rounded shadow cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700";
+          songCard.innerHTML = `
+            <h4 class="text-lg font-semibold mb-2">${song.title || 'Izina ritabonywe'}</h4>
+            <p class="text-sm text-gray-600 dark:text-gray-300">${song.lyrics?.substring(0, 100) || 'Nta magambo aboneka...'}...</p>
+          `;
+          songCard.addEventListener("click", () => {
+            modalTitle.textContent = song.title || "Indirimbo";
+            modalLyrics.textContent = song.lyrics || "Nta magambo aboneka.";
+            modal.classList.remove("hidden");
+          });
+          songList.appendChild(songCard);
+        });
+      } catch (error) {
+        songList.innerHTML = '<p class="text-red-500">Ntibyagenze neza kugaragaza indirimbo.</p>';
+        console.error(error);
       }
 
-      fetchAdminReplies();
-    });
-  </script>
-  <link rel="icon" href="/favicon.ico" />
-</head>
-<body class="bg-white dark:bg-darkBg text-gray-800 dark:text-gray-200 font-sans transition-all duration-500">
+      document.getElementById("menuToggle").addEventListener("click", () => {
+        const menu = document.getElementById("mobileMenu");
+        menu.classList.toggle("hidden");
+      });
 
-  <header class="bg-green-700 dark:bg-green-800 text-white p-6 shadow-md">
-    <div class="container mx-auto flex justify-between items-center relative">
-      <h1 class="text-2xl font-bold">Chorale Bonheur</h1>
-       <button id="menuToggle" class="md:hidden text-white text-3xl focus:outline-none">☰</button>
-     <nav id="mobileMenu" class="hidden md:hidden absolute top-full right-0 w-60 bg-green-700 p-4 space-y-2 z-50 transition-all duration-300">
-        <a href="#home" class="block text-white px-3 py-2 rounded hover:bg-green-600">Ahabanza</a>
-        <a href="#songs" class="block text-white px-3 py-2 rounded hover:bg-green-600">Indirimbo</a>
-        <a href="/announcements.html" class="block text-white px-3 py-2 rounded hover:bg-green-600">Amatangazo</a>
-        <a href="/members.html" class="block text-white px-3 py-2 rounded hover:bg-green-600">Abaririmbyi</a>
-        <a href="/committee.html" class="block text-white px-3 py-2 rounded hover:bg-green-600">Komite</a>
-        <a href="#chatbot" class="block text-white px-3 py-2 rounded hover:bg-green-600">Twandikire</a>
-        <a href="/login.html" class="block text-white px-3 py-2 rounded hover:bg-green-600">Admin Panel</a>
-        <a href="https://www.youtube.com/@choralebonheur_ADEPR_RUNDA" target="_blank" class="block text-white px-3 py-2 rounded hover:bg-green-600">YouTube</a>
-        <button id="toggleTheme" class="block w-full text-white px-3 py-2 rounded border border-white">🌓</button>
-      </nav>
+      const htmlElement = document.documentElement;
+      const toggleButtons = [
+        document.getElementById("toggleTheme"),
+        document.getElementById("toggleThemeMobile")
+      ];
 
-      <nav class="hidden md:flex space-x-6 items-center">
-        <a href="#home" class="text-white hover:underline">Ahabanza</a>
-        <a href="#songs" class="text-white hover:underline">Indirimbo</a>
-        <a href="/announcements.html" class="text-white hover:underline">Amatangazo</a>
-        <a href="/members.html" class="text-white hover:underline">Abaririmbyi</a>
-        <a href="/committee.html" class="text-white hover:underline">Komite</a>
-        <a href="#chatbot" class="text-white hover:underline">Twandikire</a>
-        <a href="/login.html" class="text-white hover:underline">Admin Panel</a>
-        <a href="https://www.youtube.com/@choralebonheur_ADEPR_RUNDA" target="_blank" class="text-white hover:underline">YouTube</a>
-        <button id="toggleTheme" class="text-white border border-white px-2 py-1 rounded">🌓</button>
-      </nav>
-    </div>
-  </header>
+      toggleButtons.forEach(btn => {
+        btn?.addEventListener("click", () => {
+          const isDark = htmlElement.classList.toggle("dark");
+          localStorage.setItem("theme", isDark ? "dark" : "light");
+        });
+      });
 
-  <section id="home" class="bg-green-50 dark:bg-darkCard py-16 text-center animate-fade-up">
-    <h2 class="text-4xl font-bold mb-4">Ikaze muri Chorale Bonheur</h2>
-    <p class="text-lg max-w-xl mx-auto">Igitabo cy'indirimbo za Chorale yacu. Soma, Shakisha, kandi Ushimishe Imana mu ndirimbo.</p>
-  </section>
-
-  <section id="counter" class="py-12 text-center animate-fade-up">
-    <h3 class="text-3xl font-bold mb-4">🎵 Indirimbo ziri kuri Site</h3>
-    <p class="text-5xl font-bold text-green-600 dark:text-green-400" id="songCounter">0</p>
-  </section>
-
-  <section id="songs" class="py-12 px-6 animate-fade-up">
-    <h3 class="text-2xl font-bold text-center mb-6">Urutonde rw'Indirimbo</h3>
-    <div class="max-w-md mx-auto mb-4">
-      <input id="searchInput" type="text" placeholder="Shakisha indirimbo..." class="border p-2 w-full mb-4 rounded dark:bg-darkCard dark:border-gray-700" />
-    </div>
-    <div id="songList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-    <div class="flex justify-center mt-6 space-x-4">
-      <button id="prevPage" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600">⬅️ Previous</button>
-      <button id="nextPage" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600">Next ➡️</button>
-    </div>
-  </section>
-
-  <section id="chatbot" class="py-12 px-6 text-center animate-fade-up">
-    <h3 class="text-2xl font-bold mb-4">Twandikire hano</h3>
-    <p class="mb-4 text-gray-700 dark:text-gray-300">Andika ubutumwa bwawe, admin azabusoma agusubize:</p>
-    <div class="max-w-xl mx-auto space-y-4">
-      <input type="text" id="name" placeholder="Izina ryawe" class="w-full px-4 py-2 border border-green-500 rounded" required />
-      <textarea id="userMessage" rows="4" placeholder="Andika ubutumwa..." class="border p-3 w-full rounded dark:bg-darkCard dark:border-gray-600"></textarea>
-      <button id="sendMessageBtn" class="bg-brand text-white px-6 py-2 rounded hover:bg-brandDark animate-glow">Ohereza</button>
-      <p id="messageStatus" class="text-sm text-gray-600 dark:text-gray-300"></p>
-    </div>
-    <div class="max-w-2xl mx-auto mt-10">
-      <h4 class="text-xl font-semibold mb-2">🗣 Ibisubizo byatanzwe na Admin</h4>
-      <div id="adminReplies" class="space-y-4 text-left"></div>
-    </div>
-  </section>
-
-  <footer class="bg-green-700 dark:bg-green-800 text-white text-center p-4 mt-20">
-    &copy; 2025 Chorale Bonheur. Uburenganzira bwose burinzwe.
-  </footer>
-
-  <script>
-    // Toggle dark mode
-    const toggleThemeBtn = document.getElementById('toggleTheme');
-    toggleThemeBtn.addEventListener('click', () => {
-      document.documentElement.classList.toggle('dark');
-    });
-
-    // Toggle mobile menu
-    const menuToggle = document.getElementById('menuToggle');
-    const mobileMenu = document.getElementById('mobileMenu');
-    menuToggle.addEventListener('click', () => {
-      mobileMenu.classList.toggle('hidden');
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "dark") {
+        htmlElement.classList.add("dark");
+      } else {
+        htmlElement.classList.remove("dark");
+      }
     });
   </script>
 </body>
