@@ -80,8 +80,18 @@
     <p class="mb-2">Uru ni urubuga rwacu rushya. Tuzagenda twongeramo ibikorwa, indirimbo, n'amakuru mashya.</p>
     <p class="text-sm text-gray-600">Reba niba TailwindCSS ikora neza kuri iyi page.</p>
 
-    <section id="indirimbo" class="mt-10">
+    <section id="songs" class="mt-10">
       <h3 class="text-2xl font-bold mb-4">🎶 Urutonde rw'indirimbo</h3>
+      <div class="mb-4">
+        <input type="text" id="songSearch" placeholder="Shaka indirimbo..." class="w-full p-2 border border-gray-300 rounded shadow" />
+      </div>
+      <div id="loadingSpinner" class="text-center text-brand hidden">
+        <svg class="animate-spin h-8 w-8 mx-auto text-brand" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+        <p>Turimo gutegura indirimbo...</p>
+      </div>
       <div id="songList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
     </section>
 
@@ -107,14 +117,14 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAnTjCSDeJU0MIwxJmgSX1HThA07Sl7Xc4",
       authDomain: "chorale-bonheur.firebaseapp.com",
       projectId: "chorale-bonheur",
-      storageBucket: "chorale-bonheur.appspot.com",
+      storageBucket: "chorale-bonheur.firebasestorage.app",
       messagingSenderId: "842542859541",
       appId: "1:842542859541:web:7e93c4abba32204461d51c",
       measurementId: "G-6LMY3CF4XP"
@@ -124,88 +134,65 @@
     const db = getFirestore(app);
 
     document.addEventListener("DOMContentLoaded", async () => {
+      const searchInput = document.getElementById("songSearch");
       const songList = document.getElementById("songList");
+      const spinner = document.getElementById("loadingSpinner");
       const modal = document.getElementById("songModal");
       const modalTitle = document.getElementById("modalTitle");
       const modalLyrics = document.getElementById("modalLyrics");
       const closeModal = document.getElementById("closeModal");
-      const chatWindow = document.getElementById("chatWindow");
-      const userInput = document.getElementById("userInput");
-      const sendBtn = document.getElementById("sendBtn");
 
-      closeModal.addEventListener("click", () => {
-        modal.classList.add("hidden");
-      });
-
-      const botAnswers = {
-        "mwiriwe": "Mwiriwe neza! Murakaza neza kuri Chorale Bonheur.",
-        "indirimbo": "Ushaka kureba urutonde rw'indirimbo? Ruri hejuru ku rubuga.",
-        "komite": "Komite yacu iyobowe na ... (uzuzuza amazina).",
-        "murakoze": "Murakoze namwe!"
-      };
-
-      sendBtn.addEventListener("click", () => {
-        const text = userInput.value.toLowerCase().trim();
-        if (!text) return;
-
-        chatWindow.innerHTML += `<div class="mb-2"><strong>Wowe:</strong> ${text}</div>`;
-        const reply = Object.entries(botAnswers).find(([key]) => text.includes(key));
-        const botReply = reply ? reply[1] : "Ntabwo nabyumva neza. Ongera usobanure.";
-
-        chatWindow.innerHTML += `<div class="mb-2"><strong>Bot:</strong> ${botReply}</div>`;
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-        userInput.value = "";
-      });
+      let allSongs = [];
 
       try {
+        spinner.classList.remove("hidden");
         const songsSnapshot = await getDocs(collection(db, "songs"));
+        spinner.classList.add("hidden");
+
         if (songsSnapshot.empty) {
           songList.innerHTML = '<p class="text-gray-500">Nta ndirimbo zirabikwa.</p>';
           return;
         }
+
         songsSnapshot.forEach(doc => {
           const song = doc.data();
-          const songCard = document.createElement("div");
-          songCard.className = "p-4 bg-gray-100 dark:bg-darkCard rounded shadow cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700";
-          songCard.innerHTML = `
-            <h4 class="text-lg font-semibold mb-2">${song.title || 'Izina ritabonywe'}</h4>
-            <p class="text-sm text-gray-600 dark:text-gray-300">${song.lyrics?.substring(0, 100) || 'Nta magambo aboneka...'}...</p>
-          `;
-          songCard.addEventListener("click", () => {
-            modalTitle.textContent = song.title || "Indirimbo";
-            modalLyrics.textContent = song.lyrics || "Nta magambo aboneka.";
-            modal.classList.remove("hidden");
+          allSongs.push(song);
+        });
+
+        const displaySongs = (songs) => {
+          songList.innerHTML = "";
+          songs.forEach(song => {
+            const songCard = document.createElement("div");
+            songCard.className = "p-4 bg-gray-100 dark:bg-darkCard rounded shadow cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700";
+            songCard.innerHTML = `
+              <h4 class="text-lg font-semibold mb-2">${song.title || 'Izina ritabonywe'}</h4>
+              <p class="text-sm text-gray-600 dark:text-gray-300">${song.lyrics?.substring(0, 100) || 'Nta magambo aboneka...'}...</p>
+            `;
+            songCard.addEventListener("click", () => {
+              modalTitle.textContent = song.title || "Indirimbo";
+              modalLyrics.textContent = song.lyrics || "Nta magambo aboneka.";
+              modal.classList.remove("hidden");
+            });
+            songList.appendChild(songCard);
           });
-          songList.appendChild(songCard);
+        };
+
+        displaySongs(allSongs.slice(0, 5));
+
+        searchInput.addEventListener("input", (e) => {
+          const query = e.target.value.toLowerCase();
+          const filtered = allSongs.filter(song => song.title?.toLowerCase().includes(query));
+          displaySongs(filtered);
         });
+
+        closeModal.addEventListener("click", () => {
+          modal.classList.add("hidden");
+        });
+
       } catch (error) {
-        songList.innerHTML = '<p class="text-red-500">Ntibyagenze neza kugaragaza indirimbo.</p>';
-        console.error(error);
-      }
-
-      document.getElementById("menuToggle").addEventListener("click", () => {
-        const menu = document.getElementById("mobileMenu");
-        menu.classList.toggle("hidden");
-      });
-
-      const htmlElement = document.documentElement;
-      const toggleButtons = [
-        document.getElementById("toggleTheme"),
-        document.getElementById("toggleThemeMobile")
-      ];
-
-      toggleButtons.forEach(btn => {
-        btn?.addEventListener("click", () => {
-          const isDark = htmlElement.classList.toggle("dark");
-          localStorage.setItem("theme", isDark ? "dark" : "light");
-        });
-      });
-
-      const savedTheme = localStorage.getItem("theme");
-      if (savedTheme === "dark") {
-        htmlElement.classList.add("dark");
-      } else {
-        htmlElement.classList.remove("dark");
+        spinner.classList.add("hidden");
+        songList.innerHTML = '<p class="text-red-500">Habaye ikibazo mu gufata indirimbo. Ongera ugerageze nyuma.</p>';
+        console.error("Error fetching songs:", error);
       }
     });
   </script>
